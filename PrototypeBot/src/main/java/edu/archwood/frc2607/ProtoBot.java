@@ -27,7 +27,7 @@ public class ProtoBot extends IterativeRobot {
 		airBender = new Solenoid(5);
 		robotDrive = new RobotDrive(left , right);
 		
-		controller = new RobovikingStick(0);
+		controller = new RobovikingStick(1);
 		
 	}
 
@@ -37,7 +37,7 @@ public class ProtoBot extends IterativeRobot {
 
 	public void teleopPeriodic() {
 		
-		robotDrive.arcadeDrive( -controller.getY() , -controller.getRawAxis(4) );
+		robotDrive.arcadeDrive( -controller.getY() , controller.getRawAxis(5) );
 		
 	}
 

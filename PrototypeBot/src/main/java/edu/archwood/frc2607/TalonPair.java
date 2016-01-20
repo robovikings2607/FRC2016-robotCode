@@ -40,8 +40,7 @@ public class TalonPair implements SpeedController {
 		}
 
 		public void set(double arg0, byte arg1) {
-			// TODO Auto-generated method stub
-			
+			set(arg0);
 		}
 
 		public void pidWrite(double arg0) {
