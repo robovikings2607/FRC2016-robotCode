@@ -46,4 +46,23 @@ public RobovikingStick(int port) {
  	if (getOneShotButton(buttonNumber)) buttonStates[btn] = !buttonStates[btn]; 
  	return buttonStates[btn]; 
  } 
+ 
+ 
+ /**
+  * Treats the specified trigger as a button rather than an axis. (The trigger returns
+  * a boolean rather than returning a value from 0 to 1)
+  * @param
+  * triggerNumber - the index of the trigger (right is 1 , left is 2)
+  * @return 
+  * true if the trigger is more than 70% pressed, false otherwise
+  */
+ public boolean getTriggerPressed(int triggerNumber){
+	 double threshold = 0.7;
+	 boolean retValue = false;
+	 int axisNumber = 5 - triggerNumber;
+	 
+	 if(this.getRawAxis(axisNumber) > threshold) retValue = true;
+	 
+	 return retValue;
+ }
 } 
