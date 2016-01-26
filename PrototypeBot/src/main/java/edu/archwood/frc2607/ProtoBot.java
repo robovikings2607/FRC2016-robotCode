@@ -16,6 +16,8 @@ public class ProtoBot extends IterativeRobot {
 	Compressor compressor ;
 	Solenoid shooterRelease ;
 	
+	boolean isLocked ;
+	
 	public void disabledInit() {
 		
 	}
@@ -30,10 +32,13 @@ public class ProtoBot extends IterativeRobot {
 		right = new TalonPair(3 , 4);
 		shooterMotor = new Talon(5);
 		robotDrive = new RobotDrive(left , right);
-		compressor = new Compressor(1, 1); //Check if parameters match
-		shooterRelease = new Solenoid(5);
+		compressor = new Compressor(1, 1);
+		shooterRelease = new Solenoid(1);
 		controller = new RobovikingStick(1);
 		
+		isLocked = false ;
+		
+		shooterRelease.set(isLocked);
 		compressor.start();
 		
 	}
@@ -52,18 +57,20 @@ public class ProtoBot extends IterativeRobot {
 	public void controlShooter(){
 		
 		if(controller.getRawButton(5)){
-			shooterMotor.set(0.3);
+			shooterMotor.set(1.0);
 		} else if(controller.getRawButton(6)){
-			shooterMotor.set(-0.3);
+			shooterMotor.set(-1.0);
 		} else {
 			shooterMotor.set(0);
 		}
 		
 		if(controller.getTriggerPressed(1)){
-			shooterRelease.set(true);
-		} else {
-			shooterRelease.set(false);
+			isLocked = false;
+		} else if(controller.getTriggerPressed(2)) {
+			isLocked = true;
 		}
+		
+		shooterRelease.set(isLocked);
 	}
 	
 }
