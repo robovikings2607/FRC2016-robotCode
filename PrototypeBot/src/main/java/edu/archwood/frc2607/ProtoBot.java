@@ -1,6 +1,7 @@
 package edu.archwood.frc2607;
 
 import edu.wpi.first.wpilibj.Compressor;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.Solenoid;
@@ -15,6 +16,7 @@ public class ProtoBot extends IterativeRobot {
 	Talon shooterMotor ;
 	Compressor compressor ;
 	Solenoid shooterRelease ;
+	DigitalInput shooterLimit ;
 	
 	boolean isLocked ;
 	
@@ -35,6 +37,7 @@ public class ProtoBot extends IterativeRobot {
 		compressor = new Compressor(1, 1);
 		shooterRelease = new Solenoid(1);
 		controller = new RobovikingStick(1);
+		shooterLimit = new DigitalInput(2);
 		
 		isLocked = false ;
 		
@@ -58,15 +61,15 @@ public class ProtoBot extends IterativeRobot {
 		
 		if(controller.getRawButton(5)){
 			shooterMotor.set(1.0);
-		} else if(controller.getRawButton(6)){
+		} else if(controller.getRawButton(6) && shooterLimit.get()){
 			shooterMotor.set(-1.0);
 		} else {
 			shooterMotor.set(0);
 		}
 		
-		if(controller.getTriggerPressed(1)){
+		if(controller.getTriggerPressed(2)){
 			isLocked = false;
-		} else if(controller.getTriggerPressed(2)) {
+		} else if(controller.getTriggerPressed(1)) {
 			isLocked = true;
 		}
 		
