@@ -17,6 +17,7 @@ public class ProtoBot extends IterativeRobot {
 	Compressor compressor ;
 	Solenoid shooterRelease ;
 	DigitalInput shooterLimit ;
+	Talon pickUp;
 	
 	boolean isLocked ;
 	
@@ -38,6 +39,7 @@ public class ProtoBot extends IterativeRobot {
 		shooterRelease = new Solenoid(1);
 		controller = new RobovikingStick(1);
 		shooterLimit = new DigitalInput(2);
+		pickUp = new Talon(6);
 		
 		isLocked = false ;
 		
@@ -53,10 +55,20 @@ public class ProtoBot extends IterativeRobot {
 	public void teleopPeriodic() {
 		
 		robotDrive.arcadeDrive( -controller.getY() , controller.getRawAxis(5) );
-		
+		controlPickup();
 		controlShooter();
 	}
 	
+	public void controlPickup(){
+	
+		if(controller.getRawButton(4)){
+			pickUp.set(1.0); //Forward
+		} else if(controller.getRawButton(1)){
+			pickUp.set(-1.0); //Backward
+		} else {
+			pickUp.set(0);
+		}
+	}
 	public void controlShooter(){
 		
 		if(controller.getRawButton(5)){
