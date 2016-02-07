@@ -24,20 +24,34 @@ public class Transmission implements SpeedController {
 	 * @param useEncoders - whether you want to use encoders or not.
 	 */
 	public Transmission( int deviceID , boolean useEncoders ) {
+		init(deviceID, deviceID + 1, deviceID + 2, useEncoders);
+	}
+
+	public Transmission(int motor1DeviceID, int motor2DeviceID, 
+						int motor3DeviceID, boolean useEncoders) {
+		init(motor1DeviceID, motor2DeviceID, motor3DeviceID, useEncoders);
+	}
+	
+	private void init(int motor1DeviceID, int motor2DeviceID, 
+						int motor3DeviceID, boolean useEncoders) {
 		
 		encodersFlag = useEncoders;
 		invertedFlag = false;
 		
-		motor1 = new Talon(deviceID);
-		motor2 = new Talon(deviceID + 1);
-		motor3 = new Talon(deviceID + 2);
-		
-		enc = new SmoothedEncoder(0 , 1 , true , Encoder.EncodingType.k1X);
-		shifter = new Solenoid(0);
-		
-		shifter.set(false);
-	}
+		motor1 = new Talon(motor1DeviceID);
+		motor2 = new Talon(motor2DeviceID);
+		motor3 = new Talon(motor3DeviceID);
 
+		if (useEncoders)
+			enc = new SmoothedEncoder(0 , 1 , true , Encoder.EncodingType.k1X);
+
+//		shifter = new Solenoid(0);
+		
+//		shifter.set(false);
+
+	}
+	
+	
 	@Override
 	public double get() {
 		if(!encodersFlag){

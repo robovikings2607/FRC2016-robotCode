@@ -22,8 +22,8 @@ public class Robot extends IterativeRobot {
      */
     public void robotInit() {
     	
-    	leftMotors = new Transmission(1 , false);
-    	rightMotors = new Transmission(4 , false);
+    	leftMotors = new Transmission(1,2,3 , false);
+    	rightMotors = new Transmission(6,4,5 , false);
     	bearTech = new RobovikingStick(1);
     	mindOfFinn = new RobotDrive(leftMotors , rightMotors);
     	
@@ -54,7 +54,7 @@ public class Robot extends IterativeRobot {
      */
     public void teleopPeriodic() {
         
-    	mindOfFinn.arcadeDrive( -bearTech.getY() , bearTech.getRawAxis(5));
+    	mindOfFinn.arcadeDrive( -bearTech.getY() , -bearTech.getRawAxis(4));
     }
     
     /**
