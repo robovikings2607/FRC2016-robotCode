@@ -17,7 +17,7 @@ public class Robot extends IterativeRobot {
 	Transmission leftMotors , rightMotors;
 	RobovikingStick bearTech;
 	RobotDrive mindOfFinn;
-	PowerDistributionPanel powerTron;
+	PowerLogger loggerTron;
 	double driverYIn, driverXIn;
 	
     /**
@@ -30,9 +30,23 @@ public class Robot extends IterativeRobot {
     	rightMotors = new Transmission(6,4,5 , false);
     	bearTech = new RobovikingStick(1);
     	mindOfFinn = new RobotDrive(leftMotors , rightMotors);
-    	powerTron = new PowerDistributionPanel();
+    	loggerTron = null;
     }
     
+	@Override
+	public void disabledInit() {
+		if (loggerTron != null) {
+			loggerTron.stopLogging();
+			loggerTron = null;
+		}
+	}
+
+	@Override
+	public void teleopInit() {
+		loggerTron = new PowerLogger(this);
+		loggerTron.startLogging();
+	}
+
 	/**
 	 * This autonomous (along with the chooser code above) shows how to select between different autonomous modes
 	 * using the dashboard. The sendable chooser code works with the Java SmartDashboard. If you prefer the LabVIEW
@@ -69,6 +83,14 @@ public class Robot extends IterativeRobot {
     
     public double getDriverXIn() {
     	return driverXIn;
+    }
+
+    public double getLeftCmd() {
+    	return leftMotors.get();
+    }
+    
+    public double getRightCmd() {
+    	return rightMotors.get();
     }
     
     /**

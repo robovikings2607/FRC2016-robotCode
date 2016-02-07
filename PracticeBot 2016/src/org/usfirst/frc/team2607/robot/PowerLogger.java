@@ -30,8 +30,8 @@ public class PowerLogger extends Thread {
 			System.out.println("\t" + fn);
 			return;
 		}
-		logFile.println("Time,Y Stick,X Stick,PDP In,L Cmd,L1 Amps,L2 Amps,L3 Amps," +
-						"R Cmd,R1 Amps,R2 Amps,R3 Amps,Total Drawn");
+		logFile.println("Time,Y Stick,X Stick,PDP In,L Cmd,C1 Amps,C2 Amps,C3 Amps," +
+						"R Cmd,C6 Amps,C4 Amps,C5 Amps,Total Drawn");
 		running = true;
 		start();
 	}
@@ -43,10 +43,16 @@ public class PowerLogger extends Thread {
 	
 	private void logEntry() {
 		StringBuffer sb = new StringBuffer();
-		sb.append(System.currentTimeMillis());		// timestamp
-		sb.append(theBot.getDriverYIn()).append(theBot.getDriverXIn()); // joystick cmd
-		sb.append(pdp.getVoltage());  // PDP VIn
-		
+		sb.append(System.currentTimeMillis()).append(",");		// timestamp
+		sb.append(theBot.getDriverYIn()).append(",").append(theBot.getDriverXIn()).append(","); // joystick cmd
+		sb.append(pdp.getVoltage()).append(",");  // PDP VIn
+		sb.append(theBot.getLeftCmd()).append(","); // left motor cmd
+		sb.append(pdp.getCurrent(1)).append(",").append(pdp.getCurrent(2)).append(",").append(pdp.getCurrent(3)).append(",");
+		sb.append(theBot.getRightCmd()).append(",");  // right motor cmd
+		sb.append(pdp.getCurrent(6)).append(",").append(pdp.getCurrent(4)).append(",").append(pdp.getCurrent(5)).append(",");
+		sb.append(pdp.getTotalPower());
+		logFile.println(sb);
+		logFile.flush();
 	}
 	
 	@Override

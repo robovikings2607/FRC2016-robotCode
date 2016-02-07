@@ -55,7 +55,7 @@ public class Transmission implements SpeedController {
 	@Override
 	public double get() {
 		if(!encodersFlag){
-			return motor1.get();
+			return motor2.get();
 		} else {
 			return -0.0;
 		}
