@@ -2,6 +2,7 @@
 package org.usfirst.frc.team2607.robot;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.RobotDrive;
 
 /**
@@ -16,6 +17,9 @@ public class Robot extends IterativeRobot {
 	Transmission leftMotors , rightMotors;
 	RobovikingStick bearTech;
 	RobotDrive mindOfFinn;
+	PowerDistributionPanel powerTron;
+	double driverYIn, driverXIn;
+	
     /**
      * This function is run when the robot is first started up and should be
      * used for any initialization code.
@@ -26,7 +30,7 @@ public class Robot extends IterativeRobot {
     	rightMotors = new Transmission(6,4,5 , false);
     	bearTech = new RobovikingStick(1);
     	mindOfFinn = new RobotDrive(leftMotors , rightMotors);
-    	
+    	powerTron = new PowerDistributionPanel();
     }
     
 	/**
@@ -54,7 +58,17 @@ public class Robot extends IterativeRobot {
      */
     public void teleopPeriodic() {
         
-    	mindOfFinn.arcadeDrive( -bearTech.getY() , -bearTech.getRawAxis(4));
+    	driverYIn = -bearTech.getY();
+    	driverXIn = -bearTech.getRawAxis(4);
+    	mindOfFinn.arcadeDrive( driverYIn , driverXIn);
+    }
+    
+    public double getDriverYIn() {
+    	return driverYIn;
+    }
+    
+    public double getDriverXIn() {
+    	return driverXIn;
     }
     
     /**
