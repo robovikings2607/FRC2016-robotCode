@@ -66,6 +66,9 @@ public class Robot extends IterativeRobot {
     	moveVal = -( dController.getY() );
     	rotateVal = -( dController.getRawAxis(4) );
     	
+    	moveVal = RobovikingStick.applyDeadZoneTo(moveVal);
+    	rotateVal = RobovikingStick.applyDeadZoneTo(rotateVal);
+    	
     	rDrive.arcadeDrive(moveVal, rotateVal);
         
     }

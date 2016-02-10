@@ -13,56 +13,84 @@ import edu.wpi.first.wpilibj.Joystick;
  * @author Driver
  */
 public class RobovikingStick extends Joystick {  
- 
-private int previousState; 
-private boolean[] buttonStates; 
- 
- 
-public RobovikingStick(int port) { 
-     super(port); 
-     previousState = 0; 
-     buttonStates = new boolean[16]; 
-     for (int i = 0; i < buttonStates.length; i++) buttonStates[i] = false; 
- } 
- 
- 
- public boolean getOneShotButton(int buttonNumber) { 
-     int bitValue = 0x1 << (buttonNumber - 1); 
-     boolean retValue = false; 
-      
-     boolean buttonWasOff = (bitValue & previousState) == 0; 
-     boolean buttonIsOn = getRawButton(buttonNumber); 
-      
-     if (buttonWasOff && buttonIsOn) retValue = true; 
-     if (buttonIsOn) previousState = previousState | bitValue; 
-     if (!buttonIsOn) previousState = previousState & ~bitValue; 
-      
-     return retValue; 
- } 
- 
- 
- public boolean getToggleButton(int buttonNumber) { 
- 	int btn = buttonNumber - 1; 
- 	if (getOneShotButton(buttonNumber)) buttonStates[btn] = !buttonStates[btn]; 
- 	return buttonStates[btn]; 
- } 
- 
- 
- /**
-  * Treats the specified trigger as a button rather than an axis. (The trigger returns
-  * a boolean rather than returning a value from 0 to 1)
-  * @param
-  * triggerNumber - the index of the trigger (right is 1 , left is 2)
-  * @return 
-  * true if the trigger is more than 70% pressed, false otherwise
-  */
- public boolean getTriggerPressed(int triggerNumber){
-	 double threshold = 0.7;
-	 boolean retValue = false;
-	 int axisNumber = 5 - triggerNumber;
 	 
-	 if(this.getRawAxis(axisNumber) > threshold) retValue = true;
+	private int previousState; 
+	private boolean[] buttonStates; 
 	 
-	 return retValue;
- }
+	 
+	public RobovikingStick(int port) { 
+	     super(port); 
+	     previousState = 0; 
+	     buttonStates = new boolean[16]; 
+	     for (int i = 0; i < buttonStates.length; i++) buttonStates[i] = false; 
+	 } 
+	 
+	 
+	 public boolean getOneShotButton(int buttonNumber) { 
+	     int bitValue = 0x1 << (buttonNumber - 1); 
+	     boolean retValue = false; 
+	      
+	     boolean buttonWasOff = (bitValue & previousState) == 0; 
+	     boolean buttonIsOn = getRawButton(buttonNumber); 
+	      
+	     if (buttonWasOff && buttonIsOn) retValue = true; 
+	     if (buttonIsOn) previousState = previousState | bitValue; 
+	     if (!buttonIsOn) previousState = previousState & ~bitValue; 
+	      
+	     return retValue; 
+	 } 
+	 
+	 
+	 public boolean getToggleButton(int buttonNumber) { 
+	 	int btn = buttonNumber - 1; 
+	 	if (getOneShotButton(buttonNumber)) buttonStates[btn] = !buttonStates[btn]; 
+	 	return buttonStates[btn]; 
+	 } 
+	 
+	 
+	 /**
+	  * Treats the specified trigger as a button rather than an axis. (The trigger returns
+	  * a boolean rather than returning a value from 0 to 1)
+	  * @param
+	  * triggerNumber - the index of the trigger (right is 1 , left is 2)
+	  * @return 
+	  * true if the trigger is more than 70% pressed, false otherwise
+	  */
+	 public boolean getTriggerPressed(int triggerNumber){
+		 double threshold = 0.7;
+		 boolean retValue = false;
+		 int axisNumber = 5 - triggerNumber;
+		 
+		 if(this.getRawAxis(axisNumber) > threshold) retValue = true;
+		 
+		 return retValue;
+	 }
+	 
+	 
+	 /**
+	  * This method applies dead zones to a specific thumb stick (getAxis value). When
+	  * the thumb stick is less than 15% pressed, the value returned is 0. Otherwise,
+	  * a value will be returned. (Nobody actually understands it anymore, but hey, 
+	  * it works...ALL HAIL JOHNBOT!)
+	  * @param 
+	  * driveVal - getAxis value that dead zones will be applied to
+	  * @return
+	  * A double that represents the getAxis value after dead zones were applied
+	  */
+	 public static double applyDeadZoneTo(double driveVal){
+		 double deadVal = 0.15;
+		 
+		 if (Math.abs(driveVal) <= deadVal) {
+             driveVal = 0;
+         }
+         if (driveVal > deadVal && driveVal <= deadVal * 2) {
+             driveVal = (driveVal - .15) * 2;
+         }
+         if (driveVal < -deadVal && driveVal >= -2 * deadVal) {
+             driveVal = (driveVal + .15) * 2;
+         }
+         
+         return driveVal;
+	 }
+	 
 } 
