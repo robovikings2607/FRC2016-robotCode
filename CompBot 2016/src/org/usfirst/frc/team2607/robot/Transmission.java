@@ -7,6 +7,13 @@ import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.PIDController;
 
+/**
+ * SpeedController for a 3-CIM Shifting gear box. One motor
+ * spins in the opposite direction of the other Two motors due
+ * to the physical design.
+ * 
+ * @author David
+ */
 public class Transmission implements SpeedController {
 	
 	CANTalon motor1 , motor2 , motor3;
@@ -19,30 +26,30 @@ public class Transmission implements SpeedController {
 	private boolean invertedFlag = false;
 	
 	/**
-	 * 
-	 * @param deviceID
-	 * @param useEncoders
+	 * Constructor for the 'Transmission' SpeedController
+	 * @param deviceID - array of the PWM port #'s
+	 * @param useEncoders - whether or not encoders are used
 	 */
-	public Transmission( int deviceID , boolean useEncoders ) {
+	public Transmission( int[] deviceID , boolean useEncoders ) {
 		
 		encodersFlag = useEncoders;
 		invertedFlag = false;
 		
-		motor1 = new CANTalon(deviceID);
-		motor2 = new CANTalon(deviceID + 1);
-		motor3 = new CANTalon(deviceID + 2);
+		motor1 = new CANTalon(deviceID[0]);
+		motor2 = new CANTalon(deviceID[1]);
+		motor3 = new CANTalon(deviceID[2]);
 		
 		motor3.changeControlMode(TalonControlMode.Follower);
-		motor3.set(deviceID + 1);
+		motor3.set(deviceID[1]);
 		
 		motor1.enableBrakeMode(false);
 		motor2.enableBrakeMode(false);
 		motor3.enableBrakeMode(false);
 		
-		enc = new SmoothedEncoder(0 , 1 , true , Encoder.EncodingType.k1X);
-		shifter = new Solenoid(0);
+//		enc = new SmoothedEncoder(0 , 1 , true , Encoder.EncodingType.k1X);
+//		shifter = new Solenoid(0);
 		
-		shifter.set(false);
+//		shifter.set(false);
 	}
 
 	@Override

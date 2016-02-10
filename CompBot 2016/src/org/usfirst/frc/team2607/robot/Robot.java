@@ -2,6 +2,7 @@
 package org.usfirst.frc.team2607.robot;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -15,12 +16,25 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  */
 public class Robot extends IterativeRobot {
 	
+	Transmission leftMotors , rightMotors ;
+	RobotDrive rDrive ;
+	
+	RobovikingStick dController , oController ;
+	
+	private double moveVal , rotateVal ;
 	
     /**
      * This function is run when the robot is first started up and should be
      * used for any initialization code.
      */
     public void robotInit() {
+    	
+    	leftMotors = new Transmission(Constants.leftMotorIDs , false);
+    	rightMotors = new Transmission(Constants.rightMotorIDs , false);
+    	rDrive = new RobotDrive(leftMotors , rightMotors);
+    	
+    	dController = new RobovikingStick(Constants.dControllerPort);
+    	oController = new RobovikingStick(Constants.oControllerPort);
     	
     }
     
@@ -48,6 +62,11 @@ public class Robot extends IterativeRobot {
      * This function is called periodically during operator control
      */
     public void teleopPeriodic() {
+    	
+    	moveVal = -( dController.getY() );
+    	rotateVal = -( dController.getRawAxis(4) );
+    	
+    	rDrive.arcadeDrive(moveVal, rotateVal);
         
     }
     
