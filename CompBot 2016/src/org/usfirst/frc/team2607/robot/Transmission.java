@@ -2,9 +2,9 @@ package org.usfirst.frc.team2607.robot;
 
 import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.CANTalon.TalonControlMode;
+import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.SpeedController;
-import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.PIDController;
 
 /**
@@ -46,7 +46,10 @@ public class Transmission implements SpeedController {
 		motor2.enableBrakeMode(false);
 		motor3.enableBrakeMode(false);
 		
-//		enc = new SmoothedEncoder(0 , 1 , true , Encoder.EncodingType.k1X);
+		if(encodersFlag) {
+			enc = new SmoothedEncoder(deviceID[3] , deviceID[4] , true , Encoder.EncodingType.k1X);
+		}
+		
 //		shifter = new Solenoid(0);
 		
 //		shifter.set(false);

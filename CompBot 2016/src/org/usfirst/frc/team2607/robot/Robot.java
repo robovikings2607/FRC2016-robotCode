@@ -3,9 +3,6 @@ package org.usfirst.frc.team2607.robot;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.RobotDrive;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -18,6 +15,7 @@ public class Robot extends IterativeRobot {
 	
 	Transmission leftMotors , rightMotors ;
 	RobotDrive rDrive ;
+	PuncherArm arm ;
 	
 	RobovikingStick dController , oController ;
 	
@@ -29,9 +27,10 @@ public class Robot extends IterativeRobot {
      */
     public void robotInit() {
     	
-    	leftMotors = new Transmission(Constants.leftMotorIDs , false);
-    	rightMotors = new Transmission(Constants.rightMotorIDs , false);
+    	leftMotors = new Transmission(Constants.leftDeviceIDs , false);
+    	rightMotors = new Transmission(Constants.rightDeviceIDs , false);
     	rDrive = new RobotDrive(leftMotors , rightMotors);
+    	arm = new PuncherArm();
     	
     	dController = new RobovikingStick(Constants.dControllerPort);
     	oController = new RobovikingStick(Constants.oControllerPort);
@@ -63,11 +62,8 @@ public class Robot extends IterativeRobot {
      */
     public void teleopPeriodic() {
     	
-    	moveVal = -( dController.getY() );
-    	rotateVal = -( dController.getRawAxis(4) );
-    	
-    	moveVal = RobovikingStick.applyDeadZoneTo(moveVal);
-    	rotateVal = RobovikingStick.applyDeadZoneTo(rotateVal);
+    	moveVal = -( dController.getRawAxisWithDeadzone(1) );
+    	rotateVal = dController.getRawAxisWithDeadzone(4);
     	
     	rDrive.arcadeDrive(moveVal, rotateVal);
         

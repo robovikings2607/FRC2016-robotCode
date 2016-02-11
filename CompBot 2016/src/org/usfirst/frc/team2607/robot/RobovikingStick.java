@@ -40,6 +40,31 @@ public class RobovikingStick extends Joystick {
 	     return retValue; 
 	 } 
 	 
+	 public boolean getButtonPressedOneShot(int buttonNumber) {
+		    int bitValue = 0x1 << (buttonNumber - 1);
+		    boolean retValue = false;
+		    boolean buttonWasOff = (bitValue & previousState) == 0;
+		    boolean buttonIsOn = getRawButton(buttonNumber);
+		    
+		    if (buttonWasOff && buttonIsOn) retValue = true;
+		    if (buttonIsOn) previousState = previousState | bitValue;
+		    if (!buttonIsOn) previousState = previousState & ~bitValue;
+		    
+		    return retValue;
+		}
+
+		public boolean getButtonReleasedOneShot(int buttonNumber) {
+		    int bitValue = 0x1 << (buttonNumber - 1);
+		    boolean retValue = false;
+		    boolean buttonWasOn = (bitValue & previousState) != 0;
+		    boolean buttonIsOff = !getRawButton(buttonNumber);
+			
+		    if (buttonWasOn && buttonIsOff) retValue = true;
+		    if (buttonIsOff) previousState = previousState & ~bitValue;
+		    if (!buttonIsOff) previousState = previousState | bitValue; 
+		    
+		    return retValue;
+		}
 	 
 	 public boolean getToggleButton(int buttonNumber) { 
 	 	int btn = buttonNumber - 1; 
@@ -68,18 +93,19 @@ public class RobovikingStick extends Joystick {
 	 
 	 
 	 /**
-	  * This method applies dead zones to a specific thumb stick (getAxis value). When
+	  * This method applies dead zones to a specified axis. When
 	  * the thumb stick is less than 15% pressed, the value returned is 0. Otherwise,
 	  * a value will be returned. (Nobody actually understands it anymore, but hey, 
 	  * it works...ALL HAIL JOHNBOT!)
 	  * @param 
-	  * driveVal - getAxis value that dead zones will be applied to
+	  * driveVal - Axis Number that dead zones will be applied to
 	  * @return
-	  * A double that represents the getAxis value after dead zones were applied
+	  * A double that represents the Axis value after dead zones were applied
 	  */
-	 public static double applyDeadZoneTo(double driveVal){
+	 public double getRawAxisWithDeadzone(int axisNumber){
 		 double deadVal = 0.15;
 		 
+		 double driveVal = getRawAxis(axisNumber);
 		 if (Math.abs(driveVal) <= deadVal) {
              driveVal = 0;
          }
