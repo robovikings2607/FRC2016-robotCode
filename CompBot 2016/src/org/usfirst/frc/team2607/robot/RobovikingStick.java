@@ -25,21 +25,11 @@ public class RobovikingStick extends Joystick {
 	     for (int i = 0; i < buttonStates.length; i++) buttonStates[i] = false; 
 	 } 
 	 
-	 
-	 public boolean getOneShotButton(int buttonNumber) { 
-	     int bitValue = 0x1 << (buttonNumber - 1); 
-	     boolean retValue = false; 
-	      
-	     boolean buttonWasOff = (bitValue & previousState) == 0; 
-	     boolean buttonIsOn = getRawButton(buttonNumber); 
-	      
-	     if (buttonWasOff && buttonIsOn) retValue = true; 
-	     if (buttonIsOn) previousState = previousState | bitValue; 
-	     if (!buttonIsOn) previousState = previousState & ~bitValue; 
-	      
-	     return retValue; 
-	 } 
-	 
+	/**
+	 * Runs once for every time button is pressed.
+	 * @param buttonNumber - button ID number
+	 * @return
+	 */
 	 public boolean getButtonPressedOneShot(int buttonNumber) {
 		    int bitValue = 0x1 << (buttonNumber - 1);
 		    boolean retValue = false;
@@ -53,7 +43,12 @@ public class RobovikingStick extends Joystick {
 		    return retValue;
 		}
 
-		public boolean getButtonReleasedOneShot(int buttonNumber) {
+	/**
+	 * Runs once for every time button is released.
+	 * @param buttonNumber - button ID number
+	 * @return
+	 */
+	public boolean getButtonReleasedOneShot(int buttonNumber) {
 		    int bitValue = 0x1 << (buttonNumber - 1);
 		    boolean retValue = false;
 		    boolean buttonWasOn = (bitValue & previousState) != 0;
@@ -65,10 +60,16 @@ public class RobovikingStick extends Joystick {
 		    
 		    return retValue;
 		}
-	 
+	
+	/**
+	 * If the button is pressed, its state changes and remains changed until it is pressed
+	 * again.
+	 * @param buttonNumber -button ID number
+	 * @return
+	 */
 	 public boolean getToggleButton(int buttonNumber) { 
 	 	int btn = buttonNumber - 1; 
-	 	if (getOneShotButton(buttonNumber)) buttonStates[btn] = !buttonStates[btn]; 
+	 	if (getButtonPressedOneShot(buttonNumber)) buttonStates[btn] = !buttonStates[btn]; 
 	 	return buttonStates[btn]; 
 	 } 
 	 

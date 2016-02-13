@@ -21,8 +21,10 @@ public class Constants {
 	public static int
 				armMotor = 6	,
 				puncherMotor = 7,
+				rollersMotor = 8,
 				
-				puncherLock = 0	;
+				puncherLock = 0	,
+				clawOpener = 1	;
 	
 	public static int
 				dControllerPort = 0	,

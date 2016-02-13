@@ -58,7 +58,7 @@ public class Robot extends IterativeRobot {
     }
 
     /**
-     * This function is called periodically during operator control
+     * This function is called periodically (~50 times a second) during operator control
      */
     public void teleopPeriodic() {
     	
@@ -66,6 +66,47 @@ public class Robot extends IterativeRobot {
     	rotateVal = dController.getRawAxisWithDeadzone(4);
     	
     	rDrive.arcadeDrive(moveVal, rotateVal);
+    	
+    	
+    	//Winding the puncher
+    	if(oController.getRawButton(5)) {
+    		arm.windPuncher(1.0);
+    	}
+    	else if(oController.getRawButton(6)) {
+    		arm.windPuncher(-1.0);
+    	}
+    	else {
+    		arm.windPuncher(0);
+    	}
+    	
+    	//Shooting controls
+    	if(oController.getTriggerPressed(1)) {
+    		arm.shoot();
+    	}
+    	else if(oController.getTriggerPressed(2)) {
+    		arm.lock();
+    	}
+    	
+    	//Controlling the rollers
+    	if(oController.getRawButton(4)) {
+    		arm.rockAndRoll(1.0);
+    	}
+    	else if(oController.getRawButton(1)) {
+    		arm.rockAndRoll(-1.0);
+    	}
+    	else {
+    		arm.rockAndRoll(0);
+    	}
+    	
+    	//Controlling the claw
+    	if(oController.getToggleButton(2)) {
+    		arm.openSesame();
+    	} else {
+    		arm.closeSesame();
+    	}
+    	
+    	//Controlling the arm
+    	arm.rotateArm( -oController.getY() );
         
     }
     
