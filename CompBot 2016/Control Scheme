@@ -18,19 +18,33 @@ Arm Positioning:
 	Talon encoder provides count of cim motor revs, forward >0, reverse <0
 		encoder is reversed, so must use CANTalon.reverseSensor(true) to keep encoder and motor in phase
 		(i.e. postive voltage causes position to increase, negative voltage cause position to decrease)
+
 	Forward (postive) voltage cause gearbox output to spin counter-clockwise when you look at it head on; or in other words
 		if you're looking at a side view with the cim to the left and the shaft to the right, forward means shaft spins towards you
-	Forward (positive) voltage will lower arm (motor is mounted on left of arm)
+	
+	Motor is mounted on left of arm and attached via an addition gear, so therefore:
+		Forward (positive) voltage will rotate arm towards front of robot 
+		Reverse (negative) voltage will rotate arm towards rear of robot	
 		
 	350 cim revs equates to 360deg of arm travel:  i.e. deg/rev = 360/350
 	so, to travel Xdeg, number of revs required is ((350 * Xdeg) / 360)
-	given that forward motor travel lowers arm, use "arm flat" as 90deg, arm straight up as 0deg
-		so to raise arm from 90deg to 45deg, we would travel -45deg
-		conversely to lower arm from 25deg to 40deg, we would travel 15deg
+
+	given that forward motor travel rotates arm towards front, measure like a protractor:  
+		Consider 90deg as straight up, 180 as flat pointing out the front of the robot, and 0 as flat pointing out the rear
+		of the robot 	
+		Have vision targeting report target angle between 90 and 180;  e.g. subtract triangulated aim angle from 180
 		
+	To calculate degrees to travel to change aim:
+		subtract current angle from target angle, and travel that far in that direction
 	
-	will need to set soft limits in Talon for protection
-		also see about detecting stall to protect against lowering too far (hitting frame / floor)
+	For example:
+		current angle is 90deg, target angle is 110deg (70deg elevation pointing out front of robot)
+			travelDegrees = 110 - 90 = 20deg
+		current angle is 110, target angle is 70deg (70deg elevation pointing out back of robot)
+			travelDegrees = 70 - 110 = -40deg  
+	
+	can't use soft limits in Talon for protection since position is relative and is reset on each profile
+		see about detecting stall to protect against lowering too far (hitting frame / floor)
 		
 	
 	
