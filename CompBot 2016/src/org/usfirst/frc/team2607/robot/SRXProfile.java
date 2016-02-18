@@ -1,5 +1,4 @@
 package org.usfirst.frc.team2607.robot;
-
 import java.util.ArrayList;
 
 import edu.wpi.first.wpilibj.CANTalon;
@@ -8,17 +7,18 @@ public class SRXProfile {
 		
 	// sign of the following two must match and reflect desired travel direction
 	private double maxSpeed;				// rotations/sec
-	private double targetDistance;			// total # of rotations to travel
+	private double startPosition;			// the starting position (# rotations)
+	private double travelDistance;			// the # of rotations to travel from the starting position
 	
 	private double dt, accelTime, decelTime;	//in ms
 	
-	public SRXProfile(double maxSpeed, double targetDistance, double accelTimeMS, double decelTimeMS, double dt) {
+	public SRXProfile(double maxSpeed, double startPosition, double travelDistance, double accelTimeMS, double decelTimeMS, double dt) {
 		this.maxSpeed = maxSpeed;
-		this.targetDistance = targetDistance;
+		this.startPosition = startPosition;
+		this.travelDistance = travelDistance;
 		this.accelTime = accelTimeMS;
 		this.decelTime = decelTimeMS;
 		this.dt = dt;
-		
 	}
 		
 	// this generates a profile using CTRE's method (second order filtering)
@@ -28,10 +28,11 @@ public class SRXProfile {
 		CANTalon.TrajectoryPoint p = new CANTalon.TrajectoryPoint();
 		p.timeDurMs = (int)dt;
 		p.isLastPoint = false;
-		p.zeroPos = true;
 		p.profileSlotSelect = 0;
 		p.velocityOnly = false;
-		p.position = 0.0;
+		p.position = startPosition;
+		if (p.position == 0.0) p.zeroPos = true; 
+		else p.zeroPos = false;
 		p.velocity = 0.0;
 		
 		// we've got the first point, let's push it
@@ -46,7 +47,7 @@ public class SRXProfile {
 //		double time4 = (targetDistance / maxSpeed) * 1000;
 		int filter1Length = (int)Math.ceil(accelTime / p.timeDurMs);
 		int filter2Length = (int)Math.ceil(decelTime / p.timeDurMs);
-		double impulseN = ((targetDistance / maxSpeed) * 1000) / p.timeDurMs;
+		double impulseN = ((travelDistance / maxSpeed) * 1000) / p.timeDurMs;
 		double filter1Sum = 0.0, filter2Sum = 0.0; 
 		double filter1Buf[] = new double[filter2Length]; 	// Java language spec guarantees that array values are initialized to 0.0
 		int bufPos = 0;

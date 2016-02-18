@@ -10,6 +10,7 @@ public class PuncherArm {
 	private CANTalon punchWinder , armRotator , rollerz;
 	private SRXProfileDriver armProfile;
 	private Solenoid punchLock , santaClaw;
+	private double armRotatorEncPos;
 	
 	public PuncherArm(){
 		punchWinder = new CANTalon(Constants.puncherMotor);
@@ -25,7 +26,7 @@ public class PuncherArm {
 		armRotator.changeControlMode(TalonControlMode.MotionProfile);
     	armRotator.reverseSensor(true);
     	armRotator.setProfile(0);
-		
+		armRotatorEncPos = armRotator.getPosition();
 		armRotator.setF(0.001);
     	armRotator.setP(.022);
     	armRotator.setI(0);
@@ -46,8 +47,13 @@ public class PuncherArm {
 	}
 	
 	//Basic method for setting the arm rotator motor to spin
-	public void rotateArm(double jubbs) {
+	public void rotateArmRaw(double jubbs) {
 		armRotator.set(jubbs);
+	}
+	
+	public void rotateArmXDegrees(double degToRotate) {
+		armProfile.setMotionProfile(new SRXProfile())
+		armProfile.startMotionProfile();
 	}
 	
 	public void rockAndRoll(double jubbs) {
@@ -63,14 +69,9 @@ public class PuncherArm {
 		armProfile.control();
 	}
 	
-	public void setArmMotionProfile(SRXProfile prof) {
-		armProfile.setMotionProfile( prof );
-		armProfile.startMotionProfile();
-	}
-	
 	public void resetArm() {
-	    armRotator.changeControlMode(TalonControlMode.PercentVbus);
-	    armRotator.setPosition(0);
+//	    armRotator.changeControlMode(TalonControlMode.PercentVbus);
+//	    armRotator.setPosition(0);
 	    armRotator.set(0);
 	    armProfile.reset();
 	}

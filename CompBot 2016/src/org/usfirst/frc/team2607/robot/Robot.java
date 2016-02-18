@@ -21,6 +21,7 @@ public class Robot extends IterativeRobot {
 	
 	private double moveVal , rotateVal ;
 	private boolean controlSet ;
+
 	
     /**
      * This function is run when the robot is first started up and should be
@@ -116,10 +117,10 @@ public class Robot extends IterativeRobot {
 //    	arm.rotateArm( -oController.getY() );
     	arm.process();
     	if(oController.getButtonPressedOneShot(4) && controlSet) {
-    		arm.setArmMotionProfile(new SRXProfile(-101.45, -4.861, 250, 250, 10));
+    		arm.rotateArm(new SRXProfile(-25, -4.861, 250, 250, 10));
     	}
     	else if(oController.getButtonPressedOneShot(1) && controlSet) {
-    		arm.setArmMotionProfile(new SRXProfile(101.45, 4.861, 250, 250, 10));
+    		arm.rotateArm(new SRXProfile(25, 4.861, 250, 250, 10));
     	}
         
     }
