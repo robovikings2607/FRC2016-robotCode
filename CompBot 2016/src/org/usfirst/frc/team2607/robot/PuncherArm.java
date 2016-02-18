@@ -27,6 +27,8 @@ public class PuncherArm {
     	armRotator.reverseSensor(true);
     	armRotator.setProfile(0);
 		armRotatorEncPos = armRotator.getPosition();
+		armRotator.setForwardSoftLimit(armRotatorEncPos);
+		armRotator.enableForwardSoftLimit(true);
 		armRotator.setF(0.001);
     	armRotator.setP(.022);
     	armRotator.setI(0);
@@ -52,8 +54,12 @@ public class PuncherArm {
 	}
 	
 	public void rotateArmXDegrees(double degToRotate) {
-		armProfile.setMotionProfile(new SRXProfile())
+		double direction = (degToRotate) / Math.abs(degToRotate);
+		double rotations = ((350.0 * degToRotate) / 360.0);
+		double maxSpeed = direction * 25.0;
+		armProfile.setMotionProfile(new SRXProfile(maxSpeed, armRotatorEncPos, rotations, 250, 250, 10));
 		armProfile.startMotionProfile();
+		armRotatorEncPos += rotations;
 	}
 	
 	public void rockAndRoll(double jubbs) {
@@ -72,7 +78,6 @@ public class PuncherArm {
 	public void resetArm() {
 //	    armRotator.changeControlMode(TalonControlMode.PercentVbus);
 //	    armRotator.setPosition(0);
-	    armRotator.set(0);
 	    armProfile.reset();
 	}
 }
