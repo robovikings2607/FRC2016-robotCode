@@ -20,6 +20,7 @@ public class Robot extends IterativeRobot {
 	RobovikingStick dController , oController ;
 	
 	private double moveVal , rotateVal ;
+	private boolean controlSet ;
 	
     /**
      * This function is run when the robot is first started up and should be
@@ -35,6 +36,7 @@ public class Robot extends IterativeRobot {
     	dController = new RobovikingStick(Constants.dControllerPort);
     	oController = new RobovikingStick(Constants.oControllerPort);
     	
+    	controlSet = false;
     }
     
 	/**
@@ -56,6 +58,10 @@ public class Robot extends IterativeRobot {
     public void autonomousPeriodic() {
     	
     }
+    
+    public void disabledPeriodic() {
+    	arm.resetArm();
+    }
 
     /**
      * This function is called periodically (~50 times a second) during operator control
@@ -67,6 +73,11 @@ public class Robot extends IterativeRobot {
     	
     	rDrive.arcadeDrive(moveVal, rotateVal);
     	
+    	if(oController.getRawButton(9)){
+    		controlSet = true;
+    	} else {
+    		controlSet = false;
+    	}
     	
     	//Winding the puncher
     	if(oController.getRawButton(5)) {
@@ -88,25 +99,28 @@ public class Robot extends IterativeRobot {
     	}
     	
     	//Controlling the rollers
-    	if(oController.getRawButton(4)) {
+    	if(oController.getRawButton(4) && !controlSet) {
     		arm.rockAndRoll(1.0);
     	}
-    	else if(oController.getRawButton(1)) {
+    	else if(oController.getRawButton(1) && !controlSet) {
     		arm.rockAndRoll(-1.0);
     	}
     	else {
     		arm.rockAndRoll(0);
     	}
     	
-    	//Controlling the claw
-    	if(oController.getToggleButton(2)) {
-    		arm.openSesame();
-    	} else {
-    		arm.closeSesame();
-    	}
+    	//Controlling the claw (open or close)
+    	arm.toggleClaw(oController.getToggleButton(2));
     	
     	//Controlling the arm
-    	arm.rotateArm( -oController.getY() );
+//    	arm.rotateArm( -oController.getY() );
+    	arm.process();
+    	if(oController.getButtonPressedOneShot(4) && controlSet) {
+    		arm.setArmMotionProfile(new SRXProfile(-101.45, -4.861, 250, 250, 10));
+    	}
+    	else if(oController.getButtonPressedOneShot(1) && controlSet) {
+    		arm.setArmMotionProfile(new SRXProfile(101.45, 4.861, 250, 250, 10));
+    	}
         
     }
     

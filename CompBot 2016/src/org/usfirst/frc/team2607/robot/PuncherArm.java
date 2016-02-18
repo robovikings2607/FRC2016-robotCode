@@ -2,10 +2,13 @@ package org.usfirst.frc.team2607.robot;
 
 import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.Solenoid;
+import edu.wpi.first.wpilibj.CANTalon.FeedbackDevice;
+import edu.wpi.first.wpilibj.CANTalon.TalonControlMode;
 
 public class PuncherArm {
 	
 	private CANTalon punchWinder , armRotator , rollerz;
+	private SRXProfileDriver armProfile;
 	private Solenoid punchLock , santaClaw;
 	
 	public PuncherArm(){
@@ -13,8 +16,20 @@ public class PuncherArm {
 		armRotator = new CANTalon(Constants.armMotor);
 		rollerz = new CANTalon(Constants.rollersMotor);
 		
+		armProfile = new SRXProfileDriver(armRotator);
+		
 		punchLock = new Solenoid(Constants.puncherLock);
 		santaClaw = new Solenoid(Constants.clawOpener);
+		
+		armRotator.setFeedbackDevice(FeedbackDevice.CtreMagEncoder_Relative);
+		armRotator.changeControlMode(TalonControlMode.MotionProfile);
+    	armRotator.reverseSensor(true);
+    	armRotator.setProfile(0);
+		
+		armRotator.setF(0.001);
+    	armRotator.setP(.022);
+    	armRotator.setI(0);
+    	armRotator.setD(0);
 	}
 	
 	public void lock() {
@@ -39,11 +54,24 @@ public class PuncherArm {
 		rollerz.set(jubbs);
 	}
 
-	public void openSesame() {
-		santaClaw.set(true);
+	public void toggleClaw(boolean jubbs) {
+		santaClaw.set(jubbs);
 	}
 	
-	public void closeSesame() {
-		santaClaw.set(false);
+	public void process() {
+		armRotator.set(armProfile.getSetValue().value);
+		armProfile.control();
+	}
+	
+	public void setArmMotionProfile(SRXProfile prof) {
+		armProfile.setMotionProfile( prof );
+		armProfile.startMotionProfile();
+	}
+	
+	public void resetArm() {
+	    armRotator.changeControlMode(TalonControlMode.PercentVbus);
+	    armRotator.setPosition(0);
+	    armRotator.set(0);
+	    armProfile.reset();
 	}
 }
