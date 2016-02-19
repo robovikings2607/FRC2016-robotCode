@@ -14,24 +14,24 @@ public class PuncherArm {
 	
 	public PuncherArm(){
 		punchWinder = new CANTalon(Constants.puncherMotor);
-		armRotator = new CANTalon(Constants.armMotor);
-		rollerz = new CANTalon(Constants.rollersMotor);
+//		armRotator = new CANTalon(Constants.armMotor);
+//		rollerz = new CANTalon(Constants.rollersMotor);
 		
 		armProfile = new SRXProfileDriver(armRotator);
 		
-		punchLock = new Solenoid(Constants.puncherLock);
-		santaClaw = new Solenoid(Constants.clawOpener);
+//		punchLock = new Solenoid(Constants.puncherLock);
+//		santaClaw = new Solenoid(Constants.clawOpener);
 		
 		armRotator.setFeedbackDevice(FeedbackDevice.CtreMagEncoder_Relative);
 		armRotator.changeControlMode(TalonControlMode.MotionProfile);
     	armRotator.reverseSensor(true);
     	armRotator.setProfile(0);
 		armRotatorEncPos = armRotator.getPosition();
-		armRotator.setForwardSoftLimit(armRotatorEncPos);
-		armRotator.enableForwardSoftLimit(true);
-		armRotator.setF(0.001);
+//		armRotator.setForwardSoftLimit(armRotatorEncPos);
+//		armRotator.enableForwardSoftLimit(true);
+    	armRotator.setF(0.002);
     	armRotator.setP(.022);
-    	armRotator.setI(0);
+    	armRotator.setI(0.0001);
     	armRotator.setD(0);
 	}
 	
@@ -56,7 +56,7 @@ public class PuncherArm {
 	public void rotateArmXDegrees(double degToRotate) {
 		double direction = (degToRotate) / Math.abs(degToRotate);
 		double rotations = ((350.0 * degToRotate) / 360.0);
-		double maxSpeed = direction * 25.0;
+		double maxSpeed = direction * 23.0;
 		armProfile.setMotionProfile(new SRXProfile(maxSpeed, armRotatorEncPos, rotations, 250, 250, 10));
 		armProfile.startMotionProfile();
 		armRotatorEncPos += rotations;

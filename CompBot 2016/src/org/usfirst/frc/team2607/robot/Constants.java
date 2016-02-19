@@ -19,7 +19,7 @@ public class Constants {
 				rightEncChannelB = 3 ;
 	
 	public static int
-				armMotor = 7	,
+				armMotor = 10	,
 				puncherMotor = 8,
 				rollersMotor = 9,
 				

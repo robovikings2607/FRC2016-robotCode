@@ -29,9 +29,9 @@ public class Robot extends IterativeRobot {
      */
     public void robotInit() {
     	
-    	leftMotors = new Transmission(Constants.leftDeviceIDs , false);
-    	rightMotors = new Transmission(Constants.rightDeviceIDs , false);
-    	rDrive = new RobotDrive(leftMotors , rightMotors);
+//    	leftMotors = new Transmission(Constants.leftDeviceIDs , false);
+//    	rightMotors = new Transmission(Constants.rightDeviceIDs , false);
+//   	rDrive = new RobotDrive(leftMotors , rightMotors);
     	arm = new PuncherArm();
     	
     	dController = new RobovikingStick(Constants.dControllerPort);
@@ -72,7 +72,7 @@ public class Robot extends IterativeRobot {
     	moveVal = -( dController.getRawAxisWithDeadzone(1) );
     	rotateVal = dController.getRawAxisWithDeadzone(4);
     	
-    	rDrive.arcadeDrive(moveVal, rotateVal);
+//    	rDrive.arcadeDrive(moveVal, rotateVal);
     	
     	if(oController.getRawButton(9)){
     		controlSet = true;
@@ -117,10 +117,10 @@ public class Robot extends IterativeRobot {
 //    	arm.rotateArm( -oController.getY() );
     	arm.process();
     	if(oController.getButtonPressedOneShot(4) && controlSet) {
-    		arm.rotateArm(new SRXProfile(-25, -4.861, 250, 250, 10));
+    		arm.rotateArmXDegrees(-5.0); //(new SRXProfile(-25, -4.861, 250, 250, 10));
     	}
     	else if(oController.getButtonPressedOneShot(1) && controlSet) {
-    		arm.rotateArm(new SRXProfile(25, 4.861, 250, 250, 10));
+    		arm.rotateArmXDegrees(5.0); // new SRXProfile(25, 4.861, 250, 250, 10));
     	}
         
     }
