@@ -118,6 +118,9 @@ public class Robot extends IterativeRobot {
     	//Controlling the arm
 //    	arm.rotateArm( -oController.getY() );
     	arm.process();
+    	
+    	// raise the arm 5 degrees each time xBox Button Y is pressed while holding down left stick
+    	// lower the arm 5 degrees each time xBox Button A is pressed while holding down left stick
     	if(oController.getButtonPressedOneShot(4) && controlSet) {
     		arm.rotateArmXDegrees(-5.0); //(new SRXProfile(-25, -4.861, 250, 250, 10));
     	}

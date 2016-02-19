@@ -17,7 +17,21 @@ Operator Controls
 	While pressing the Left stick:
 		Button Y (4) - raise the arm 5 degrees
 		Button A (1) - lower the arm 5 degrees
-	
+
+TODO:
+1) Need to determine start-up procedure for field
+	- when powered off arm will fall if below ~45deg (gravity)
+	- need external sensor to detect raised position, and assume on power up if that switch doesn't detect the
+	arm, that the arm is at it's lowest position
+		- can try setting soft limit to that position and see how it works, think we need to reset arm
+		motion profiles (i.e. call PuncherArm.resetArm()) if the soft limit fault occurs, and possibly
+		clear it, before any other profiels will run
+		- check with Omar on expected behavior
+
+2) Add power logging for arm rotator (need to measure current draw while holding position)
+
+3) Add TCP code (or user network tables) for data exchange with vision app
+
 Arm Positioning:
 	Talon encoder provides count of cim motor revs, forward >0, reverse <0
 		encoder is reversed, so must use CANTalon.reverseSensor(true) to keep encoder and motor in phase
@@ -49,6 +63,7 @@ Arm Positioning:
 	
 	can't use soft limits in Talon for protection since position is relative and is reset on each profile
 		see about detecting stall to protect against lowering too far (hitting frame / floor)
-		
 	
+
+	 	
 	

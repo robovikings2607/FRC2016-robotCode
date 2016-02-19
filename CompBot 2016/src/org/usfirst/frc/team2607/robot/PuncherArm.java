@@ -11,6 +11,9 @@ public class PuncherArm {
 	private SRXProfileDriver armProfile;
 	private Solenoid punchLock , santaClaw;
 	private double armRotatorEncPos;
+	private final double armRotatorMaxSpeed = 18.0;  // cim rotations per second, for motion profiles
+
+	// TODO:  add power logging thread
 	
 	public PuncherArm(){
 //		punchWinder = new CANTalon(Constants.puncherMotor);
@@ -26,7 +29,6 @@ public class PuncherArm {
 		armRotator.changeControlMode(TalonControlMode.MotionProfile);
     	armRotator.reverseSensor(true);
     	armRotator.setProfile(0);
-		armRotatorEncPos = armRotator.getPosition();
 //		armRotator.setForwardSoftLimit(armRotatorEncPos);
 //		armRotator.enableForwardSoftLimit(true);
     	armRotator.setF(0.003);
@@ -50,17 +52,26 @@ public class PuncherArm {
 	}
 	
 	//Basic method for setting the arm rotator motor to spin
-	public void rotateArmRaw(double jubbs) {
-		armRotator.set(jubbs);
+	public void raiseArm() {
+
 	}
 	
+	public void lowerArm() {
+		
+	}
+	
+	public void stopArm() {
+		
+	}
+	
+	// positive degToRotate lowers the arm
+	// negative degToRotate raises the arm
 	public void rotateArmXDegrees(double degToRotate) {
 		double direction = (degToRotate) / Math.abs(degToRotate);
 		double rotations = ((350.0 * degToRotate) / 360.0);
-		double maxSpeed = direction * 18.0;
-		armProfile.setMotionProfile(new SRXProfile(maxSpeed, armRotatorEncPos, rotations, 250, 250, 10));
+		double maxSpeed = direction * armRotatorMaxSpeed;
+		armProfile.setMotionProfile(new SRXProfile(maxSpeed, 0, rotations, 250, 250, 10));
 		armProfile.startMotionProfile();
-		armRotatorEncPos += rotations;
 	}
 	
 	public void rockAndRoll(double jubbs) {
@@ -80,5 +91,6 @@ public class PuncherArm {
 //	    armRotator.changeControlMode(TalonControlMode.PercentVbus);
 //	    armRotator.setPosition(0);
 	    armProfile.reset();
+	    armRotator.set(armProfile.getSetValue().value);
 	}
 }
