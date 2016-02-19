@@ -69,8 +69,8 @@ public class Robot extends IterativeRobot {
      */
     public void teleopPeriodic() {
     	
-    	moveVal = -( dController.getRawAxisWithDeadzone(1) );
-    	rotateVal = dController.getRawAxisWithDeadzone(4);
+//    	moveVal = -( dController.getRawAxisWithDeadzone(1) );
+//    	rotateVal = dController.getRawAxisWithDeadzone(4);
     	
 //    	rDrive.arcadeDrive(moveVal, rotateVal);
     	
@@ -79,7 +79,7 @@ public class Robot extends IterativeRobot {
     	} else {
     		controlSet = false;
     	}
-    	
+/*    	
     	//Winding the puncher
     	if(oController.getRawButton(5)) {
     		arm.windPuncher(1.0);
@@ -90,7 +90,8 @@ public class Robot extends IterativeRobot {
     	else {
     		arm.windPuncher(0);
     	}
-    	
+*/
+/*    	
     	//Shooting controls
     	if(oController.getTriggerPressed(1)) {
     		arm.shoot();
@@ -98,7 +99,8 @@ public class Robot extends IterativeRobot {
     	else if(oController.getTriggerPressed(2)) {
     		arm.lock();
     	}
-    	
+*/
+/*    	
     	//Controlling the rollers
     	if(oController.getRawButton(4) && !controlSet) {
     		arm.rockAndRoll(1.0);
@@ -109,9 +111,9 @@ public class Robot extends IterativeRobot {
     	else {
     		arm.rockAndRoll(0);
     	}
-    	
+*/    	
     	//Controlling the claw (open or close)
-    	arm.toggleClaw(oController.getToggleButton(2));
+//    	arm.toggleClaw(oController.getToggleButton(2));
     	
     	//Controlling the arm
 //    	arm.rotateArm( -oController.getY() );

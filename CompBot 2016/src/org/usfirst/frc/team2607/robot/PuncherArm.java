@@ -13,8 +13,8 @@ public class PuncherArm {
 	private double armRotatorEncPos;
 	
 	public PuncherArm(){
-		punchWinder = new CANTalon(Constants.puncherMotor);
-//		armRotator = new CANTalon(Constants.armMotor);
+//		punchWinder = new CANTalon(Constants.puncherMotor);
+		armRotator = new CANTalon(Constants.armMotor);
 //		rollerz = new CANTalon(Constants.rollersMotor);
 		
 		armProfile = new SRXProfileDriver(armRotator);
@@ -29,10 +29,11 @@ public class PuncherArm {
 		armRotatorEncPos = armRotator.getPosition();
 //		armRotator.setForwardSoftLimit(armRotatorEncPos);
 //		armRotator.enableForwardSoftLimit(true);
-    	armRotator.setF(0.002);
-    	armRotator.setP(.022);
+    	armRotator.setF(0.003);
+    	armRotator.setP(.03);
     	armRotator.setI(0.0001);
     	armRotator.setD(0);
+    	armRotator.enableBrakeMode(true);
 	}
 	
 	public void lock() {
@@ -56,7 +57,7 @@ public class PuncherArm {
 	public void rotateArmXDegrees(double degToRotate) {
 		double direction = (degToRotate) / Math.abs(degToRotate);
 		double rotations = ((350.0 * degToRotate) / 360.0);
-		double maxSpeed = direction * 23.0;
+		double maxSpeed = direction * 18.0;
 		armProfile.setMotionProfile(new SRXProfile(maxSpeed, armRotatorEncPos, rotations, 250, 250, 10));
 		armProfile.startMotionProfile();
 		armRotatorEncPos += rotations;
