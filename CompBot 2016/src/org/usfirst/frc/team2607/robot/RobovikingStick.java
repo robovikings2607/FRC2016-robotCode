@@ -78,14 +78,14 @@ public class RobovikingStick extends Joystick {
 	  * Treats the specified trigger as a button rather than an axis. (The trigger returns
 	  * a boolean rather than returning a value from 0 to 1)
 	  * @param
-	  * triggerNumber - the index of the trigger (right is 1 , left is 2)
+	  * axisNumber - the axis of the trigger (right is axis 3 , left is 2)
 	  * @return 
 	  * true if the trigger is more than 70% pressed, false otherwise
 	  */
-	 public boolean getTriggerPressed(int triggerNumber){
+	 public boolean getTriggerPressed(int axisNumber){
 		 double threshold = 0.7;
 		 boolean retValue = false;
-		 int axisNumber = 5 - triggerNumber;
+//		 int axisNumber = 5 - triggerNumber;
 		 
 		 if(this.getRawAxis(axisNumber) > threshold) retValue = true;
 		 

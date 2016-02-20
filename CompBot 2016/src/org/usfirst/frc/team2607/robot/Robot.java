@@ -99,10 +99,10 @@ public class Robot extends IterativeRobot {
 
     	
     	//Shooting controls
-    	if(oController.getTriggerPressed(1)) {
+    	if(oController.getTriggerPressed(3)) {  // right trigger = axis 3
     		arm.shoot();
     	}
-    	else if(oController.getTriggerPressed(2)) {
+    	else if(oController.getTriggerPressed(2)) {  // left trigger = axis 2
     		arm.lock();
     	}
     	
