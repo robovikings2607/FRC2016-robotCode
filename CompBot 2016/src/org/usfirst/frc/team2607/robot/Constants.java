@@ -22,8 +22,8 @@ public class Constants {
 				shifter = 0;
 	
 	public static int
-				armMotor = 10	,
-				puncherMotor = 8,
+				armMotor = 8	,
+				puncherMotor = 7,
 				rollersMotor = 9,
 				
 				puncherLock = 2	,

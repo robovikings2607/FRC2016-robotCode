@@ -1,11 +1,13 @@
 package org.usfirst.frc.team2607.robot;
 
+import java.io.File;
 import java.io.PrintWriter;
 
 import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.CANTalon.FeedbackDevice;
 import edu.wpi.first.wpilibj.CANTalon.TalonControlMode;
+import edu.wpi.first.wpilibj.DriverStation;
 
 public class PuncherArm {
 	
@@ -18,15 +20,29 @@ public class PuncherArm {
 	// TODO:  add power logging thread
 	
 	private class PowerLogger extends Thread {
+
 		private PrintWriter log;
 		
+		@Override
+		public void run() {
+			log.println(System.currentTimeMillis() + "," +
+						DriverStation.getInstance().isEnabled() + "," + 
+						armRotator.getPosition() + "," +
+						armRotator.getSpeed() + "," +
+						armRotator.getBusVoltage() + "," + 
+						armRotator.getOutputVoltage() + "," +
+						armRotator.getOutputCurrent());
+			log.flush();
+		}
+
 		public PowerLogger() {
-			
+			try {
+				String s = "/home/lvuser/PuncherArm." + System.currentTimeMillis() + ".csv";
+				log = new PrintWriter(new File(s));
+				log.println("Time,Enabled?,Pos,Vel,VIn,VOut,AmpOut");
+			} catch (Exception e) {}
 		}
 	}
-	
-	
-	
 	
 	public PuncherArm(){
 //		punchWinder = new CANTalon(Constants.puncherMotor);
@@ -34,6 +50,7 @@ public class PuncherArm {
 //		rollerz = new CANTalon(Constants.rollersMotor);
 		
 		armProfile = new SRXProfileDriver(armRotator);
+		new PowerLogger().start();
 		
 //		punchLock = new Solenoid(Constants.puncherLock);
 //		santaClaw = new Solenoid(Constants.clawOpener);
