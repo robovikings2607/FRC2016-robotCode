@@ -14,7 +14,7 @@ public class PuncherArm {
 	private CANTalon punchWinder , armRotator , rollerz;
 	private SRXProfileDriver armProfile;
 	private Solenoid punchLock , santaClaw;
-	private double armRotatorEncPos;
+	private double armRotatorEncPos , armLastPosition;
 	private final double armRotatorMaxSpeed = 18.0;  // cim rotations per second, for motion profiles
 
 	// TODO:  add power logging thread

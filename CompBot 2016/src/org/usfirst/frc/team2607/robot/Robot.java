@@ -93,7 +93,6 @@ public class Robot extends IterativeRobot {
     	} else {
     		controlSet = false;
     	}
-    	
     	//Winding the puncher
     	if(oController.getRawButton(RobovikingStick.xBoxLeftBumper)) {
     		arm.windPuncher(1.0);
@@ -129,7 +128,7 @@ public class Robot extends IterativeRobot {
     	arm.toggleClaw(oController.getToggleButton(RobovikingStick.xBoxButtonB));
     	
     	//Controlling the arm    	
-    	if (!controlSet) arm.resetArm();
+    	//if (!controlSet) arm.resetArm();
     	arm.process();
     	
     	// raise the arm 5 degrees each time xBox Button Y is pressed while holding down left stick
