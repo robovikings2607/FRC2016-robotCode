@@ -33,12 +33,12 @@ public class Robot extends IterativeRobot {
      */
     public void robotInit() {
     	
-//    	shifter = new Solenoid(Constants.shifter);
-//    	leftMotors = new Transmission(Constants.leftDeviceIDs , false);
-//    	rightMotors = new Transmission(Constants.rightDeviceIDs , false);
-//   	rDrive = new RobotDrive(leftMotors , rightMotors);
+    	shifter = new Solenoid(1,Constants.shifter);
+    	leftMotors = new Transmission(Constants.leftDeviceIDs , false);
+    	rightMotors = new Transmission(Constants.rightDeviceIDs , false);
+    	rDrive = new RobotDrive(leftMotors , rightMotors);
     	arm = new PuncherArm();
-    	
+    	System.out.println("CUTE DINOSAUR");
     	dController = new RobovikingStick(Constants.dControllerPort);
     	oController = new RobovikingStick(Constants.oControllerPort);
     	
@@ -75,17 +75,17 @@ public class Robot extends IterativeRobot {
      */
     public void teleopPeriodic() {
     	
-//    	moveVal = -( dController.getRawAxisWithDeadzone(1) );
-//    	rotateVal = dController.getRawAxisWithDeadzone(4);
+    	moveVal = -( dController.getRawAxisWithDeadzone(1) );
+    	rotateVal = dController.getRawAxisWithDeadzone(4);
     	
-//    	rDrive.arcadeDrive(moveVal, rotateVal);
+    	rDrive.arcadeDrive(moveVal, rotateVal);
     	
     	if(oController.getRawButton(9)){
     		controlSet = true;
     	} else {
     		controlSet = false;
     	}
-/*    	
+    	
     	//Winding the puncher
     	if(oController.getRawButton(5)) {
     		arm.windPuncher(1.0);
@@ -96,8 +96,8 @@ public class Robot extends IterativeRobot {
     	else {
     		arm.windPuncher(0);
     	}
-*/
-/*    	
+
+    	
     	//Shooting controls
     	if(oController.getTriggerPressed(1)) {
     		arm.shoot();
@@ -105,8 +105,7 @@ public class Robot extends IterativeRobot {
     	else if(oController.getTriggerPressed(2)) {
     		arm.lock();
     	}
-*/
-/*    	
+    	
     	//Controlling the rollers
     	if(oController.getRawButton(4) && !controlSet) {
     		arm.rockAndRoll(1.0);
@@ -117,12 +116,14 @@ public class Robot extends IterativeRobot {
     	else {
     		arm.rockAndRoll(0);
     	}
-*/    	
+    	
     	//Controlling the claw (open or close)
-//    	arm.toggleClaw(oController.getToggleButton(2));
+    	arm.toggleClaw(oController.getToggleButton(2));
     	
     	//Controlling the arm
-//    	arm.rotateArm( -oController.getY() );
+    	
+    	if (!controlSet) arm.resetArm();
+
     	arm.process();
     	
     	// raise the arm 5 degrees each time xBox Button Y is pressed while holding down left stick
@@ -133,7 +134,7 @@ public class Robot extends IterativeRobot {
     	else if(oController.getButtonPressedOneShot(1) && controlSet) {
     		arm.rotateArmXDegrees(5.0); // new SRXProfile(25, 4.861, 250, 250, 10));
     	}
-        
+        shifter.set (dController.getToggleButton(10));
     }
     
     /**
