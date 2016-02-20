@@ -59,7 +59,7 @@ public class PuncherArm {
 		
 		armProfile = new SRXProfileDriver(armRotator);
 		new PowerLogger().start();
-		
+	
 		punchLock = new Solenoid(1,Constants.puncherLock);
 		santaClaw = new Solenoid(1,Constants.clawOpener);
 		
@@ -70,8 +70,8 @@ public class PuncherArm {
     	armRotator.setPosition(0);
 		armRotator.setForwardSoftLimit(0);
 		armRotator.enableForwardSoftLimit(true);
-		//armRotator.setReverseSoftLimit(-82.6);
-		armRotator.setReverseSoftLimit(-50.0);
+		armRotator.setReverseSoftLimit(-82.6);
+		//armRotator.setReverseSoftLimit(-50.0);
 		armRotator.enableReverseSoftLimit(true);
     	armRotator.setF(0.003);
     	armRotator.setP(.03);

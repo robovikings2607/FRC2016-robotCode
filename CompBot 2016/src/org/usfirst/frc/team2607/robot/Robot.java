@@ -1,6 +1,8 @@
 
 package org.usfirst.frc.team2607.robot;
 
+import com.kauailabs.navx.frc.AHRS;
+
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.Solenoid;
@@ -18,8 +20,11 @@ public class Robot extends IterativeRobot {
 	RobotDrive rDrive ;
 	PuncherArm arm ;
 	Solenoid shifter ;
+	AHRS navX;
 	
 	RobovikingStick dController , oController ;
+	
+	AutonomousEngine autoEngine;
 	
 	private double moveVal , rotateVal ;
 	private boolean controlSet ;
@@ -43,6 +48,9 @@ public class Robot extends IterativeRobot {
     	oController = new RobovikingStick(Constants.oControllerPort);
     	
     	controlSet = false;
+    	autoEngine = new AutonomousEngine(rDrive, arm, shifter);
+    	
+    	
     }
     
 	/**
