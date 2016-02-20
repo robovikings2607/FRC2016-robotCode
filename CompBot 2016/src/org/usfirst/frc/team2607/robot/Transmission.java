@@ -17,7 +17,6 @@ import edu.wpi.first.wpilibj.PIDController;
 public class Transmission implements SpeedController {
 	
 	CANTalon motor1 , motor2 , motor3;
-	Solenoid shifter;
 	
 	SmoothedEncoder enc;
 	PIDController pidLoop;
@@ -41,6 +40,9 @@ public class Transmission implements SpeedController {
 		
 		motor3.changeControlMode(TalonControlMode.Follower);
 		motor3.set(deviceID[1]);
+		motor1.changeControlMode(TalonControlMode.Follower);
+		motor1.set(deviceID[1]);
+		motor1.reverseOutput(true);
 		
 		motor1.enableBrakeMode(false);
 		motor2.enableBrakeMode(false);
@@ -50,9 +52,6 @@ public class Transmission implements SpeedController {
 			enc = new SmoothedEncoder(deviceID[3] , deviceID[4] , true , Encoder.EncodingType.k1X);
 		}
 		
-//		shifter = new Solenoid(0);
-		
-//		shifter.set(false);
 	}
 
 	@Override
@@ -75,7 +74,6 @@ public class Transmission implements SpeedController {
 			s = -s;
 		}
 		if(!encodersFlag) {
-			motor1.set(-s);
 			motor2.set(s);
 		}
 		else {

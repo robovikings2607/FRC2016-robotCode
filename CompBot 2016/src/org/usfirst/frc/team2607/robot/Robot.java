@@ -3,6 +3,7 @@ package org.usfirst.frc.team2607.robot;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.RobotDrive;
+import edu.wpi.first.wpilibj.Solenoid;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -16,6 +17,7 @@ public class Robot extends IterativeRobot {
 	Transmission leftMotors , rightMotors ;
 	RobotDrive rDrive ;
 	PuncherArm arm ;
+	Solenoid shifter ;
 	
 	RobovikingStick dController , oController ;
 	
@@ -23,12 +25,15 @@ public class Robot extends IterativeRobot {
 	private boolean controlSet ;
 
 	
+	// TODO:  add control for shifter (low gear / high gear)
+	
     /**
      * This function is run when the robot is first started up and should be
      * used for any initialization code.
      */
     public void robotInit() {
     	
+//    	shifter = new Solenoid(Constants.shifter);
 //    	leftMotors = new Transmission(Constants.leftDeviceIDs , false);
 //    	rightMotors = new Transmission(Constants.rightDeviceIDs , false);
 //   	rDrive = new RobotDrive(leftMotors , rightMotors);
@@ -62,6 +67,7 @@ public class Robot extends IterativeRobot {
     
     public void disabledPeriodic() {
     	arm.resetArm();
+    	arm.process();
     }
 
     /**

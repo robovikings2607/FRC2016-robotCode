@@ -19,11 +19,14 @@ public class Constants {
 				rightEncChannelB = 3 ;
 	
 	public static int
+				shifter = 0;
+	
+	public static int
 				armMotor = 10	,
 				puncherMotor = 8,
 				rollersMotor = 9,
 				
-				puncherLock = 0	,
+				puncherLock = 2	,
 				clawOpener = 1	;
 	
 	public static int

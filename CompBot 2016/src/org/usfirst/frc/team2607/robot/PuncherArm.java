@@ -1,5 +1,7 @@
 package org.usfirst.frc.team2607.robot;
 
+import java.io.PrintWriter;
+
 import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.CANTalon.FeedbackDevice;
@@ -15,6 +17,17 @@ public class PuncherArm {
 
 	// TODO:  add power logging thread
 	
+	private class PowerLogger extends Thread {
+		private PrintWriter log;
+		
+		public PowerLogger() {
+			
+		}
+	}
+	
+	
+	
+	
 	public PuncherArm(){
 //		punchWinder = new CANTalon(Constants.puncherMotor);
 		armRotator = new CANTalon(Constants.armMotor);
@@ -29,8 +42,11 @@ public class PuncherArm {
 		armRotator.changeControlMode(TalonControlMode.MotionProfile);
     	armRotator.reverseSensor(true);
     	armRotator.setProfile(0);
-//		armRotator.setForwardSoftLimit(armRotatorEncPos);
-//		armRotator.enableForwardSoftLimit(true);
+    	armRotator.setPosition(0);
+		armRotator.setForwardSoftLimit(0);
+		armRotator.enableForwardSoftLimit(true);
+		armRotator.setReverseSoftLimit(-82.6);
+		armRotator.enableReverseSoftLimit(true);
     	armRotator.setF(0.003);
     	armRotator.setP(.03);
     	armRotator.setI(0.0001);
@@ -70,7 +86,7 @@ public class PuncherArm {
 		double direction = (degToRotate) / Math.abs(degToRotate);
 		double rotations = ((350.0 * degToRotate) / 360.0);
 		double maxSpeed = direction * armRotatorMaxSpeed;
-		armProfile.setMotionProfile(new SRXProfile(maxSpeed, 0, rotations, 250, 250, 10));
+		armProfile.setMotionProfile(new SRXProfile(maxSpeed, armRotator.getPosition(), rotations, 250, 250, 10));
 		armProfile.startMotionProfile();
 	}
 	
@@ -83,8 +99,12 @@ public class PuncherArm {
 	}
 	
 	public void process() {
-		armRotator.set(armProfile.getSetValue().value);
+		if (armRotator.isSensorPresent(FeedbackDevice.CtreMagEncoder_Relative) 
+										!= CANTalon.FeedbackDeviceStatus.FeedbackStatusPresent) {
+			resetArm();
+		} 
 		armProfile.control();
+		armRotator.set(armProfile.getSetValue().value);
 	}
 	
 	public void resetArm() {
