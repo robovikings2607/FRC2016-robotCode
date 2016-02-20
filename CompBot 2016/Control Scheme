@@ -65,6 +65,12 @@ Arm Positioning:
 	can't use soft limits in Talon for protection since position is relative and is reset on each profile
 		see about detecting stall to protect against lowering too far (hitting frame / floor)
 	
-
+MikeyBear's Dream Control Scheme
+	Shoot and Lock Piston and open the claw - Right Trigger
+	Left and Right Bumpers - Rollers in and out
+	Up and down on D-Pad - move arm up and down
+	left stick - cock back the puncher
+	button A - calculate and angle of shooter
+	
 	 	
 	

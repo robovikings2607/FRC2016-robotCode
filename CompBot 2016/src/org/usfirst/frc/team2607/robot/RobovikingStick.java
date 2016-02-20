@@ -17,7 +17,25 @@ public class RobovikingStick extends Joystick {
 	private int previousState; 
 	private boolean[] buttonStates; 
 	 
-	 
+	public static final int 
+		xBoxLeftStickX = 0,
+		xBoxLeftStickY = 1,
+		xBoxLeftTrigger = 2,
+		xBoxRightTrigger = 3,
+		xBoxRightStickX = 4, 
+		xBoxRightStickY = 5,
+		xBoxButtonA = 1,
+		xBoxButtonB = 2,
+		xBoxButtonX = 3,
+		xBoxButtonY = 4,
+		xBoxLeftBumper = 5,
+		xBoxRightBumper = 6,
+		xBoxButtonBack = 7,
+		xBoxButtonStart = 8,
+		xBoxButtonLeftStick = 9,
+		xBoxButtonRightStick = 10;
+	
+	
 	public RobovikingStick(int port) { 
 	     super(port); 
 	     previousState = 0; 

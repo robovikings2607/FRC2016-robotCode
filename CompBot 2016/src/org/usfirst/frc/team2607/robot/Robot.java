@@ -43,14 +43,12 @@ public class Robot extends IterativeRobot {
     	rightMotors = new Transmission(Constants.rightDeviceIDs , false);
     	rDrive = new RobotDrive(leftMotors , rightMotors);
     	arm = new PuncherArm();
-    	System.out.println("CUTE DINOSAUR");
+    	System.out.println("I AM CUTE DINOSAUR, HEAR ME RAWR");
     	dController = new RobovikingStick(Constants.dControllerPort);
     	oController = new RobovikingStick(Constants.oControllerPort);
     	
     	controlSet = false;
-    	autoEngine = new AutonomousEngine(rDrive, arm, shifter);
-    	
-    	
+    	autoEngine = new AutonomousEngine(rDrive, arm, shifter);  	    	
     }
     
 	/**
@@ -83,22 +81,24 @@ public class Robot extends IterativeRobot {
      */
     public void teleopPeriodic() {
     	
-    	moveVal = -( dController.getRawAxisWithDeadzone(1) );
-    	rotateVal = dController.getRawAxisWithDeadzone(4);
+    	moveVal = -( dController.getRawAxisWithDeadzone(RobovikingStick.xBoxLeftStickY) );
+    	rotateVal = dController.getRawAxisWithDeadzone(RobovikingStick.xBoxRightStickX);
     	
+    	// Driving!
+    	shifter.set(dController.getToggleButton(RobovikingStick.xBoxButtonRightStick));
     	rDrive.arcadeDrive(moveVal, rotateVal);
-    	
-    	if(oController.getRawButton(9)){
+   	
+    	if(oController.getRawButton(RobovikingStick.xBoxButtonLeftStick)){
     		controlSet = true;
     	} else {
     		controlSet = false;
     	}
     	
     	//Winding the puncher
-    	if(oController.getRawButton(5)) {
+    	if(oController.getRawButton(RobovikingStick.xBoxLeftBumper)) {
     		arm.windPuncher(1.0);
     	}
-    	else if(oController.getRawButton(6)) {
+    	else if(oController.getRawButton(RobovikingStick.xBoxRightBumper)) {
     		arm.windPuncher(-1.0);
     	}
     	else {
@@ -107,18 +107,18 @@ public class Robot extends IterativeRobot {
 
     	
     	//Shooting controls
-    	if(oController.getTriggerPressed(3)) {  // right trigger = axis 3
+    	if(oController.getTriggerPressed(RobovikingStick.xBoxRightTrigger)) {  // right trigger = axis 3
     		arm.shoot();
     	}
-    	else if(oController.getTriggerPressed(2)) {  // left trigger = axis 2
+    	else if(oController.getTriggerPressed(RobovikingStick.xBoxLeftTrigger)) {  // left trigger = axis 2
     		arm.lock();
     	}
     	
     	//Controlling the rollers
-    	if(oController.getRawButton(4) && !controlSet) {
+    	if(oController.getRawButton(RobovikingStick.xBoxButtonY) && !controlSet) {
     		arm.rockAndRoll(1.0);
     	}
-    	else if(oController.getRawButton(1) && !controlSet) {
+    	else if(oController.getRawButton(RobovikingStick.xBoxButtonA) && !controlSet) {
     		arm.rockAndRoll(-1.0);
     	}
     	else {
@@ -126,23 +126,21 @@ public class Robot extends IterativeRobot {
     	}
     	
     	//Controlling the claw (open or close)
-    	arm.toggleClaw(oController.getToggleButton(2));
+    	arm.toggleClaw(oController.getToggleButton(RobovikingStick.xBoxButtonB));
     	
-    	//Controlling the arm
-    	
+    	//Controlling the arm    	
     	if (!controlSet) arm.resetArm();
-
     	arm.process();
     	
     	// raise the arm 5 degrees each time xBox Button Y is pressed while holding down left stick
     	// lower the arm 5 degrees each time xBox Button A is pressed while holding down left stick
-    	if(oController.getButtonPressedOneShot(4) && controlSet) {
-    		arm.rotateArmXDegrees(-5.0); //(new SRXProfile(-25, -4.861, 250, 250, 10));
+    	if(oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonY) && controlSet) {
+    		arm.rotateArmXDegrees(-5.0); //(new SRXProfile(-18, -4.861, 250, 250, 10));
     	}
-    	else if(oController.getButtonPressedOneShot(1) && controlSet) {
-    		arm.rotateArmXDegrees(5.0); // new SRXProfile(25, 4.861, 250, 250, 10));
+    	else if(oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonA) && controlSet) {
+    		arm.rotateArmXDegrees(5.0); // new SRXProfile(18, 4.861, 250, 250, 10));
     	}
-        shifter.set (dController.getToggleButton(10));
+        
     }
     
     /**
