@@ -71,6 +71,9 @@ public class Robot extends IterativeRobot {
     }
     
     public void disabledPeriodic() {
+    	
+    	arm.windPuncher(0);
+    	
     	arm.resetArm();
     	arm.process();
     }
@@ -94,6 +97,7 @@ public class Robot extends IterativeRobot {
     	}
     
     	//Winding the puncher
+
     	if(oController.getRawButton(RobovikingStick.xBoxLeftBumper)) {  // drive plunger back (tighten)
     		arm.windPuncher(.6);
     	}
@@ -133,10 +137,10 @@ public class Robot extends IterativeRobot {
     	// raise the arm 5 degrees each time xBox Button Y is pressed while holding down left stick
     	// lower the arm 5 degrees each time xBox Button A is pressed while holding down left stick
     	if(oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonY) && controlSet) {
-    		arm.rotateArmXDegrees(-5.0); //(new SRXProfile(-18, -4.861, 250, 250, 10));
+    		arm.rotateArmXDegrees(-10.0); //(new SRXProfile(-18, -4.861, 250, 250, 10));
     	}
     	else if(oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonA) && controlSet) {
-    		arm.rotateArmXDegrees(5.0); // new SRXProfile(18, 4.861, 250, 250, 10));
+    		arm.rotateArmXDegrees(10.0); // new SRXProfile(18, 4.861, 250, 250, 10));
     	}
         
     }

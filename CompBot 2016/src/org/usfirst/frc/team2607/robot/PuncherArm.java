@@ -16,7 +16,7 @@ public class PuncherArm {
 	private Solenoid punchLock , santaClaw;
 	private double armDegreesFromStart;
 	private final double armRotatorMaxSpeed = 18.0;  // cim rotations per second, for motion profiles
-
+	private AutoWinder winderThread;
 	
 	private class AutoWinder extends Thread {
 
@@ -78,8 +78,6 @@ public class PuncherArm {
 		}
 	}
 	
-	
-	
 	private class PowerLogger extends Thread {
 
 		private PrintWriter log;
@@ -135,7 +133,7 @@ public class PuncherArm {
 		armRotator.setForwardSoftLimit(0);
 		armRotator.enableForwardSoftLimit(true);
 		armRotator.setReverseSoftLimit(-82.6);
-		//armRotator.setReverseSoftLimit(-50.0);
+		//armRotator.setReverseSoftLimit(-15);
 		armRotator.enableReverseSoftLimit(true);
     	armRotator.setF(0.003);
     	armRotator.setP(.03);
@@ -158,7 +156,11 @@ public class PuncherArm {
 	public void windPuncher(double jubbs) {
 		punchWinder.set(jubbs);
 	}
-	
+
+	public void stopWindingSequence() {
+		if (winderThread != null) winderThread.stopSequence();
+	}
+
 	//Basic method for setting the arm rotator motor to spin
 	public void raiseArm() {
 
