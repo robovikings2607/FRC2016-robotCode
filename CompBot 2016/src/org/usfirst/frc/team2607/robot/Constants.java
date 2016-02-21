@@ -23,7 +23,7 @@ public class Constants {
 	
 	public static int
 				armMotor = 8	,
-				puncherMotor = 7,
+				puncherMotor = 10,	// was 7,
 				rollersMotor = 9,
 				
 				puncherLock = 2	,

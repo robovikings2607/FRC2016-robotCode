@@ -30,9 +30,7 @@ public class Robot extends IterativeRobot {
 	private boolean controlSet ;
 
 	
-	// TODO:  add control for shifter (low gear / high gear)
-	
-    /**
+	/**
      * This function is run when the robot is first started up and should be
      * used for any initialization code.
      */
@@ -42,6 +40,7 @@ public class Robot extends IterativeRobot {
     	leftMotors = new Transmission(Constants.leftDeviceIDs , false);
     	rightMotors = new Transmission(Constants.rightDeviceIDs , false);
     	rDrive = new RobotDrive(leftMotors , rightMotors);
+    	rDrive.setSafetyEnabled(false);
     	arm = new PuncherArm();
     	System.out.println("I AM CUTE DINOSAUR, HEAR ME RAWR");
     	dController = new RobovikingStick(Constants.dControllerPort);
@@ -82,29 +81,29 @@ public class Robot extends IterativeRobot {
     public void teleopPeriodic() {
     	
     	moveVal = -( dController.getRawAxisWithDeadzone(RobovikingStick.xBoxLeftStickY) );
-    	rotateVal = dController.getRawAxisWithDeadzone(RobovikingStick.xBoxRightStickX);
+    	rotateVal = - (dController.getRawAxisWithDeadzone(RobovikingStick.xBoxRightStickX));
     	
     	// Driving!
     	shifter.set(dController.getToggleButton(RobovikingStick.xBoxButtonRightStick));
     	rDrive.arcadeDrive(moveVal, rotateVal);
-   	
+    	
     	if(oController.getRawButton(RobovikingStick.xBoxButtonLeftStick)){
     		controlSet = true;
     	} else {
     		controlSet = false;
     	}
+    
     	//Winding the puncher
-    	if(oController.getRawButton(RobovikingStick.xBoxLeftBumper)) {
-    		arm.windPuncher(1.0);
+    	if(oController.getRawButton(RobovikingStick.xBoxLeftBumper)) {  // drive plunger back (tighten)
+    		arm.windPuncher(.6);
     	}
-    	else if(oController.getRawButton(RobovikingStick.xBoxRightBumper)) {
-    		arm.windPuncher(-1.0);
+    	else if(oController.getRawButton(RobovikingStick.xBoxRightBumper)) {  // drive plunger up (loosen)
+    		arm.windPuncher(-.6);
     	}
     	else {
     		arm.windPuncher(0);
     	}
 
-    	
     	//Shooting controls
     	if(oController.getTriggerPressed(RobovikingStick.xBoxRightTrigger)) {  // right trigger = axis 3
     		arm.shoot();

@@ -10,8 +10,8 @@ Operator Controls
 	Button B (2) - Toggle claw open/close
 	Left Bumper (5) - tighten winder
 	Right Bumper (6) - loosen winder
-	Left Trigger (axis 2) - locks the puncher (sets solenoid to true)
-	Right Trigger (axis 3) - shoot the puncher (sets solenoid to false)
+	Left Trigger (axis 2) - locks the puncher 
+	Right Trigger (axis 3) - shoot the puncher 
 	Up on the left stick - raise the arm
 	Down on the left stick - lower the arm
 	

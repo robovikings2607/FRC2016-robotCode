@@ -23,6 +23,8 @@ public class Transmission implements SpeedController {
 	
 	private boolean encodersFlag = false;
 	private boolean invertedFlag = false;
+	private int brakePulseTick = 0;
+	private boolean enableBrakeMode = false;
 	
 	/**
 	 * Constructor for the 'Transmission' SpeedController
@@ -57,7 +59,7 @@ public class Transmission implements SpeedController {
 	@Override
 	public double get() {
 		if(!encodersFlag){
-			return motor1.get();
+			return motor2.get();
 		} else {
 			return -0.0;
 		}
@@ -78,6 +80,15 @@ public class Transmission implements SpeedController {
 		}
 		else {
 			
+		}
+		if (Math.abs(s) <= .1) {
+			if (++brakePulseTick >= 10) {
+			enableBrakeMode = !enableBrakeMode;
+			motor1.enableBrakeMode(enableBrakeMode);
+			motor2.enableBrakeMode(enableBrakeMode);
+			motor3.enableBrakeMode(enableBrakeMode);
+			brakePulseTick = 0;
+			}
 		}
 	}
 

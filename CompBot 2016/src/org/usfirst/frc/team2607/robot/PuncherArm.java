@@ -14,10 +14,68 @@ public class PuncherArm {
 	private CANTalon punchWinder , armRotator , rollerz;
 	private SRXProfileDriver armProfile;
 	private Solenoid punchLock , santaClaw;
-	private double armRotatorEncPos , armLastPosition;
+	private double armDegreesFromStart;
 	private final double armRotatorMaxSpeed = 18.0;  // cim rotations per second, for motion profiles
 
-	// TODO:  add power logging thread
+	
+	private class AutoWinder extends Thread {
+
+		private int step = 0;
+		
+		@Override
+		public void run() {
+			int sleepTime = 0;
+			while (true) {
+				try {
+					switch (step) {
+						case 0: 
+							punchWinder.setPosition(0);
+							sleepTime = 20; 
+							break;
+						case 1:			// starting from the cocked position...
+							shoot();	// release lock
+							sleepTime = 10;
+							punchWinder.set(-1.0); // move forward to grab
+							if (punchWinder.getPosition() <= -91) step +=1;
+							break;
+						case 2: 
+							punchWinder.set(0); // stop moving
+							punchWinder.setPosition(0);
+							lock();				// close the lock 
+							sleepTime = 250;	// wait .25 secs
+							step += 1;
+							break;
+						case 3: 
+							punchWinder.set(1.0);	// draw back
+							sleepTime = 10;
+							if (punchWinder.getPosition() >= 91) step += 1;
+							break;
+						case 4:
+							punchWinder.set(0);		// stop, sequence complete
+							sleepTime = 20;
+							step = 0;
+						default: sleepTime = 20; break;
+					}
+					Thread.sleep(sleepTime);
+				} catch (Exception e) { }
+			}
+		}
+		
+		public void startFromUncockedPosition() {
+			if (step == 0) step = 2;
+		}
+		
+		public void startFromCockedPosition() {
+			if (step == 0) step = 1;
+		}
+		
+		public void stopSequence() {
+			punchWinder.set(0);
+			step = 0;
+		}
+	}
+	
+	
 	
 	private class PowerLogger extends Thread {
 
@@ -63,6 +121,9 @@ public class PuncherArm {
 		punchLock = new Solenoid(1,Constants.puncherLock);
 		santaClaw = new Solenoid(1,Constants.clawOpener);
 		
+		punchWinder.setFeedbackDevice(FeedbackDevice.CtreMagEncoder_Relative);
+		punchWinder.enableBrakeMode(true);
+		
 		armRotator.setFeedbackDevice(FeedbackDevice.CtreMagEncoder_Relative);
 		armRotator.changeControlMode(TalonControlMode.MotionProfile);
     	armRotator.reverseSensor(true);
@@ -78,14 +139,16 @@ public class PuncherArm {
     	armRotator.setI(0.0001);
     	armRotator.setD(0);
     	armRotator.enableBrakeMode(true);
+    	
+    	armDegreesFromStart = 0.0;			// saves the manual movements of the arm
 	}
 	
 	public void lock() {
-		punchLock.set(true);
+		punchLock.set(false);
 	}
 	
 	public void shoot() {
-		punchLock.set(false);
+		punchLock.set(true);
 	}
 	
 	//Basic method for setting the puncher winder motor to spin
@@ -114,6 +177,8 @@ public class PuncherArm {
 		double maxSpeed = direction * armRotatorMaxSpeed;
 		armProfile.setMotionProfile(new SRXProfile(maxSpeed, armRotator.getPosition(), rotations, 250, 250, 10));
 		armProfile.startMotionProfile();
+		armDegreesFromStart += degToRotate;
+		System.out.println("Arm command: " + degToRotate + ", total from start pos: " + armDegreesFromStart);
 	}
 	
 	public void rockAndRoll(double jubbs) {
