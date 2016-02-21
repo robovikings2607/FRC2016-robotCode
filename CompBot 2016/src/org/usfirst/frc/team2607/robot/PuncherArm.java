@@ -34,23 +34,26 @@ public class PuncherArm {
 							break;
 						case 1:			// starting from the cocked position...
 							shoot();	// release lock
-							sleepTime = 10;
-							punchWinder.set(-1.0); // move forward to grab
-							if (punchWinder.getPosition() <= -91) step +=1;
+							sleepTime = 250;
+							step += 1;
 							break;
-						case 2: 
+						case 2:
+							punchWinder.set(-1.0); // move forward to grab
+							if (punchWinder.getPosition() <= -90) step +=1;
+							break;
+						case 3: 
 							punchWinder.set(0); // stop moving
 							punchWinder.setPosition(0);
 							lock();				// close the lock 
 							sleepTime = 250;	// wait .25 secs
 							step += 1;
 							break;
-						case 3: 
+						case 4: 
 							punchWinder.set(1.0);	// draw back
 							sleepTime = 10;
-							if (punchWinder.getPosition() >= 91) step += 1;
+							if (punchWinder.getPosition() >= 90) step += 1;
 							break;
-						case 4:
+						case 5:
 							punchWinder.set(0);		// stop, sequence complete
 							sleepTime = 20;
 							step = 0;
@@ -62,7 +65,7 @@ public class PuncherArm {
 		}
 		
 		public void startFromUncockedPosition() {
-			if (step == 0) step = 2;
+			if (step == 0) step = 3;
 		}
 		
 		public void startFromCockedPosition() {
