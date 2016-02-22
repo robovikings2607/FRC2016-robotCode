@@ -152,8 +152,7 @@ public class PuncherArm {
 	
 		punchLock = new Solenoid(1,Constants.puncherLock);
 		santaClaw = new Solenoid(1,Constants.clawOpener);
-		
-		
+			
 		punchWinder.setFeedbackDevice(FeedbackDevice.CtreMagEncoder_Relative);
 		punchWinder.enableBrakeMode(true);
 		punchWinder.reverseSensor(true);
@@ -182,8 +181,8 @@ public class PuncherArm {
 	}
 	
 	public void shoot() {
-		santaClaw.set(false);
-		punchLock.set(true);
+		santaClaw.set(false);		// open the pickup claw
+		punchLock.set(true);		// 
 	}
 	
 	//Basic method for setting the puncher winder motor to spin
@@ -252,7 +251,7 @@ public class PuncherArm {
 		return shooterCocked.get();
 	}
 
-	public boolean getArmLimiter() {	// for photo-eye at arm down position
+	public boolean getArmLimiter() {	// for photo-eye at arm down position (false when at down position)
 		return armLimiter.get();
 	}
 	

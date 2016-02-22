@@ -30,9 +30,24 @@ TODO:
 		clear it, before any other profiels will run
 		- check with Omar on expected behavior
 
+	- tested and clearing faults;  JNI methods not implemented for reading SRX faults so robot code
+	crashes.  Therefore can't use these, and will have to eliminate the forward soft limit eventually
+	- will need to try using just velocity PID (with feedforward only) to move to 0 position
+	 
+
 2) Add TCP code (or user network tables) for data exchange with vision app
 
+3) Plan and code autonomous routine for HH (low bar, turn, shoot)
 
+4) Confirm drive base encoders are sensing and incorporate 
+	- check direction (e.g. in-phase or out-of-phase)
+	- get max RPM for both high- & low- gears 
+	- test speed control PID on roboRIO with just feedforward term
+
+5) change how claw is opened when shooting
+	- move from PuncherArm.shoot() into Robot, so that we can have a manual mode (testPeriodic) where PuncherArm.shoot()
+	just releases the latch and doesn't open the claw	
+	 
 Arm Positioning:
 	Talon encoder provides count of cim motor revs, forward >0, reverse <0
 		encoder is reversed, so must use CANTalon.reverseSensor(true) to keep encoder and motor in phase
