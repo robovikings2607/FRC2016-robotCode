@@ -32,15 +32,6 @@ TODO:
 
 2) Add TCP code (or user network tables) for data exchange with vision app
 
-Winder sequencing
-- photoeye will provide zero position = fully cocked
-- never drive motor forward once photoeye is made
-- on power up, if photoeye isn't made:
-	- shoot
-	- drive forward until photoeye is made
-	- set SRX position to 0
-- from that point, the automated shoot & re-cock sequence can be used	
-
 
 Arm Positioning:
 	Talon encoder provides count of cim motor revs, forward >0, reverse <0

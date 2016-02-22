@@ -55,7 +55,7 @@ public class PuncherArm {
 						case 4: 
 							punchWinder.set(-1.0);	// draw back
 							sleepTime = 10;
-							if (punchWinder.getPosition() <= -100) step += 1;
+							if (punchWinder.getPosition() <= -100 || !shooterCocked.get()) step += 1;
 							break;
 						case 5:
 							punchWinder.set(0);		// stop, sequence complete
@@ -143,15 +143,16 @@ public class PuncherArm {
 		new PowerLogger().start();
 		
     	// check if the shooter is at home (cocked) position, if not disable it until the zero'ing process is run
-    	shooterEnabled = !shooterCocked.get();
+		armLimiter = new DigitalInput(Constants.armLimiter);
+		shooterCocked = new DigitalInput(Constants.shooterCocked);
+
+		shooterEnabled = !shooterCocked.get();
 		winderThread = new AutoWinder();
 		winderThread.start();
 	
 		punchLock = new Solenoid(1,Constants.puncherLock);
 		santaClaw = new Solenoid(1,Constants.clawOpener);
 		
-		armLimiter = new DigitalInput(Constants.armLimiter);
-		shooterCocked = new DigitalInput(Constants.shooterCocked);
 		
 		punchWinder.setFeedbackDevice(FeedbackDevice.CtreMagEncoder_Relative);
 		punchWinder.enableBrakeMode(true);
@@ -181,6 +182,7 @@ public class PuncherArm {
 	}
 	
 	public void shoot() {
+		santaClaw.set(false);
 		punchLock.set(true);
 	}
 	

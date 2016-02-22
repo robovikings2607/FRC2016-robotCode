@@ -91,7 +91,7 @@ public class Robot extends IterativeRobot {
     	rotateVal = - (dController.getRawAxisWithDeadzone(RobovikingStick.xBoxRightStickX));
     	
     	// Driving!
-    	shifter.set(dController.getToggleButton(RobovikingStick.xBoxButtonRightStick));
+    	shifter.set(!dController.getToggleButton(RobovikingStick.xBoxButtonRightStick));
     	rDrive.arcadeDrive(moveVal, rotateVal);
     	
     	if(oController.getRawButton(RobovikingStick.xBoxButtonLeftStick)){
@@ -130,7 +130,7 @@ public class Robot extends IterativeRobot {
     	//Controlling the arm    	
     	//if (!controlSet) arm.resetArm();
     	arm.process();
-    	
+/*    	
     	// raise the arm 5 degrees each time xBox Button Y is pressed while holding down left stick
     	// lower the arm 5 degrees each time xBox Button A is pressed while holding down left stick
     	if(oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonY) && controlSet) {
@@ -139,7 +139,13 @@ public class Robot extends IterativeRobot {
     	else if(oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonA) && controlSet) {
     		arm.rotateArmXDegrees(5.0); // new SRXProfile(18, 4.861, 250, 250, 10));
     	}
-    	
+*/
+    	if (oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonY) && !arm.getArmLimiter() && controlSet) {
+    		arm.rotateArmXDegrees(-47);
+    	}
+    	if(oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonA) && arm.getArmLimiter() && controlSet) {
+    		arm.rotateArmXDegrees(47);
+    	}
     	if(++counter >= 50){
     		System.out.println( "ShooterEnabled: " + arm.isShooterEnabled() + "  Shooter Eye: " + arm.isShooterCocked() + " Arm Eye: " + arm.getArmLimiter());
     		counter = 0;
@@ -169,6 +175,13 @@ public class Robot extends IterativeRobot {
     	}
     	else if(oController.getTriggerPressed(RobovikingStick.xBoxLeftTrigger)) {  // left trigger = axis 2
     		arm.lock();
+    	}
+    	
+    	if(oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonY) ) {
+    		arm.rotateArmXDegrees(-5.0); //(new SRXProfile(-18, -4.861, 250, 250, 10));
+    	}
+    	else if(oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonA) && arm.getArmLimiter() ) {
+    		arm.rotateArmXDegrees(5.0); // new SRXProfile(18, 4.861, 250, 250, 10));
     	}
 
     }
