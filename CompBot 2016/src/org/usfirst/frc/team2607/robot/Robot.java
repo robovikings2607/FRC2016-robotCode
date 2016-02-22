@@ -72,12 +72,16 @@ public class Robot extends IterativeRobot {
     
     public void disabledPeriodic() {
     	
-    	arm.windPuncher(0);
-    	
+    	arm.windPuncher(0);    	
     	arm.resetArm();
     	arm.process();
+    	if(++counter >= 50){
+    		System.out.println( "ShooterEnabled: " + arm.isShooterEnabled() + "  Photoeye Reading: " + arm.isShooterCocked());
+    		counter = 0;
+    	}
     }
 
+    int counter = 0;
     /**
      * This function is called periodically (~50 times a second) during operator control
      */
@@ -96,24 +100,17 @@ public class Robot extends IterativeRobot {
     		controlSet = false;
     	}
     
-    	//Winding the puncher
-
-    	if(oController.getRawButton(RobovikingStick.xBoxLeftBumper)) {  // drive plunger back (tighten)
-    		arm.windPuncher(.6);
-    	}
-    	else if(oController.getRawButton(RobovikingStick.xBoxRightBumper)) {  // drive plunger up (loosen)
-    		arm.windPuncher(-.6);
-    	}
-    	else {
-    		arm.windPuncher(0);
-    	}
-
     	//Shooting controls
-    	if(oController.getTriggerPressed(RobovikingStick.xBoxRightTrigger)) {  // right trigger = axis 3
-    		arm.shoot();
+    	if(oController.getTriggerPressed(RobovikingStick.xBoxRightTrigger) && arm.isShooterEnabled()) {  // right trigger = axis 3
+//    		arm.shoot();
+    		arm.startFromCockedPosition();
     	}
     	else if(oController.getTriggerPressed(RobovikingStick.xBoxLeftTrigger)) {  // left trigger = axis 2
     		arm.lock();
+    	}
+    	
+    	if (oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonStart) && !arm.isShooterEnabled()) {
+    		arm.runWinderZeroer();
     	}
     	
     	//Controlling the rollers
@@ -137,10 +134,15 @@ public class Robot extends IterativeRobot {
     	// raise the arm 5 degrees each time xBox Button Y is pressed while holding down left stick
     	// lower the arm 5 degrees each time xBox Button A is pressed while holding down left stick
     	if(oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonY) && controlSet) {
-    		arm.rotateArmXDegrees(-10.0); //(new SRXProfile(-18, -4.861, 250, 250, 10));
+    		arm.rotateArmXDegrees(-5.0); //(new SRXProfile(-18, -4.861, 250, 250, 10));
     	}
     	else if(oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonA) && controlSet) {
-    		arm.rotateArmXDegrees(10.0); // new SRXProfile(18, 4.861, 250, 250, 10));
+    		arm.rotateArmXDegrees(5.0); // new SRXProfile(18, 4.861, 250, 250, 10));
+    	}
+    	
+    	if(++counter >= 50){
+    		System.out.println( "ShooterEnabled: " + arm.isShooterEnabled() + "  Photoeye Reading: " + arm.isShooterCocked());
+    		counter = 0;
     	}
         
     }
@@ -149,7 +151,26 @@ public class Robot extends IterativeRobot {
      * This function is called periodically during test mode
      */
     public void testPeriodic() {
-    
+
+    	// shooter winding manual control
+    	if(oController.getRawButton(RobovikingStick.xBoxLeftBumper)) {  // drive plunger forward (loosen)
+    		arm.windPuncher(.6);
+    	}
+    	else if(oController.getRawButton(RobovikingStick.xBoxRightBumper) && arm.isShooterCocked()) {  // drive plunger back (tighten)
+    		arm.windPuncher(-.6);
+    	}
+    	else {
+    		arm.windPuncher(0);
+    	}
+
+    	// manual control of shooter latch
+    	if(oController.getTriggerPressed(RobovikingStick.xBoxRightTrigger)) {  // right trigger = axis 3
+    		arm.shoot();
+    	}
+    	else if(oController.getTriggerPressed(RobovikingStick.xBoxLeftTrigger)) {  // left trigger = axis 2
+    		arm.lock();
+    	}
+
     }
     
 }

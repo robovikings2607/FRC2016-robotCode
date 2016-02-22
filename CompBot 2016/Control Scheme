@@ -9,8 +9,8 @@ Operator Controls
 	Button Y (4) - Roll out
 	Button B (2) - Toggle claw open/close
 	
-		Left Bumper (5) - tighten winder (motor spins forward/positive voltage; encoder position increases)
-		Right Bumper (6) - loosen winder (motor spins reverse/negative voltage; encoder position decreases)
+		Right Bumper (6) - tighten winder (motor spins reverse/negative voltage; encoder position decreases)
+		Left Bumper (5) - loosen winder (motor spins forward/positive voltage; encoder position increases)
 			- the above two operator controls will change once zero'ing sequence is implemented
 			
 	Left Trigger (axis 2) - locks the puncher 
@@ -73,6 +73,8 @@ Arm Positioning:
 	
 	can't use soft limits in Talon for protection since position is relative and is reset on each profile
 		see about detecting stall to protect against lowering too far (hitting frame / floor)
+		
+	42 degrees is the optimal angle for shooting into the high goal from the edge of the outer works
 	
 MikeyBear's Dream Control Scheme
 	Shoot and Lock Piston and open the claw - Right Trigger
@@ -80,6 +82,8 @@ MikeyBear's Dream Control Scheme
 	Up and down on D-Pad - move arm up and down
 	left stick - cock back the puncher
 	button A - calculate and angle of shooter
+	
+	
 	
 	 	
 	

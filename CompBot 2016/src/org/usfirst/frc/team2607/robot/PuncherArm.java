@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.CANTalon.FeedbackDevice;
 import edu.wpi.first.wpilibj.CANTalon.TalonControlMode;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 
 public class PuncherArm {
@@ -14,9 +15,11 @@ public class PuncherArm {
 	private CANTalon punchWinder , armRotator , rollerz;
 	private SRXProfileDriver armProfile;
 	private Solenoid punchLock , santaClaw;
+	private DigitalInput armLimiter , shooterCocked;
 	private double armDegreesFromStart;
 	private final double armRotatorMaxSpeed = 18.0;  // cim rotations per second, for motion profiles
 	private AutoWinder winderThread;
+	private boolean shooterEnabled;
 	
 	private class AutoWinder extends Thread {
 
@@ -37,9 +40,10 @@ public class PuncherArm {
 							sleepTime = 250;
 							step += 1;
 							break;
-						case 2:
-							punchWinder.set(-1.0); // move forward to grab
-							if (punchWinder.getPosition() <= -90) step +=1;
+						case 2:		
+							punchWinder.set(.6); // move forward to grab
+							if (punchWinder.getPosition() >= 100) step +=1;
+							sleepTime = 10;
 							break;
 						case 3: 
 							punchWinder.set(0); // stop moving
@@ -49,14 +53,29 @@ public class PuncherArm {
 							step += 1;
 							break;
 						case 4: 
-							punchWinder.set(1.0);	// draw back
+							punchWinder.set(-1.0);	// draw back
 							sleepTime = 10;
-							if (punchWinder.getPosition() >= 90) step += 1;
+							if (punchWinder.getPosition() <= -100) step += 1;
 							break;
 						case 5:
 							punchWinder.set(0);		// stop, sequence complete
 							sleepTime = 20;
 							step = 0;
+							break;
+						// auto shoot & re-cock sequence stops here, below is zero'ing sequence
+						case 10:					// move to home position
+							shoot();
+							sleepTime = 10;
+							punchWinder.setPosition(0);
+							punchWinder.set(-.3);
+							System.out.println("going home, pos: " + punchWinder.getPosition());
+							if (!shooterCocked.get() || punchWinder.getPosition() <= -100) step += 1;
+							break;
+						case 11:
+							punchWinder.set(0);
+							sleepTime = 20;
+							shooterEnabled = true;
+							break;
 						default: sleepTime = 20; break;
 					}
 					Thread.sleep(sleepTime);
@@ -65,11 +84,15 @@ public class PuncherArm {
 		}
 		
 		public void startFromUncockedPosition() {
-			if (step == 0) step = 3;
+			if (step == 0 && shooterEnabled) step = 3;
 		}
 		
 		public void startFromCockedPosition() {
-			if (step == 0) step = 1;
+			if (step == 0 && shooterEnabled) step = 1;
+		}
+		
+		public void goToHomePosition() {
+			if (step == 0 && !shooterEnabled) step = 10;
 		}
 		
 		public void stopSequence() {
@@ -118,12 +141,21 @@ public class PuncherArm {
 		
 		armProfile = new SRXProfileDriver(armRotator);
 		new PowerLogger().start();
+		
+    	// check if the shooter is at home (cocked) position, if not disable it until the zero'ing process is run
+    	shooterEnabled = !shooterCocked.get();
+		winderThread = new AutoWinder();
+		winderThread.start();
 	
 		punchLock = new Solenoid(1,Constants.puncherLock);
 		santaClaw = new Solenoid(1,Constants.clawOpener);
 		
+		armLimiter = new DigitalInput(Constants.armLimiter);
+		shooterCocked = new DigitalInput(Constants.shooterCocked);
+		
 		punchWinder.setFeedbackDevice(FeedbackDevice.CtreMagEncoder_Relative);
 		punchWinder.enableBrakeMode(true);
+		punchWinder.reverseSensor(true);
 		
 		armRotator.setFeedbackDevice(FeedbackDevice.CtreMagEncoder_Relative);
 		armRotator.changeControlMode(TalonControlMode.MotionProfile);
@@ -208,5 +240,29 @@ public class PuncherArm {
 //	    armRotator.setPosition(0);
 	    armProfile.reset();
 	    armRotator.set(armProfile.getSetValue().value);
+	}
+	
+	public boolean isShooterEnabled() { //for shooterEnabled field
+		return shooterEnabled;
+	}
+	
+	public boolean isShooterCocked() { //for photo-eye (false when it sees pickup)
+		return shooterCocked.get();
+	}
+	
+	public void runWinderZeroer(){
+		winderThread.goToHomePosition();
+	}
+	
+	public void startFromUncockedPosition() {
+		winderThread.startFromUncockedPosition();
+	}
+	
+	public void startFromCockedPosition(){
+		winderThread.startFromCockedPosition();
+	}
+	
+	public void stopSequence() {
+		winderThread.stopSequence();
 	}
 }

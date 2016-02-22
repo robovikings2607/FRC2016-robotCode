@@ -7,16 +7,17 @@ public class Constants {
 				leftMotor2 = 2	,
 				leftMotor3 = 3	,
 				
-				leftEncChannelA = 0	,
-				leftEncChannelB = 1	;
+				leftEncChannelA = 7	,
+				leftEncChannelB = 6	;
+	
 	
 	private static int
 				rightMotor1 = 6	,
 				rightMotor2 = 4	,
 				rightMotor3 = 5	,
 	
-				rightEncChannelA = 2 ,
-				rightEncChannelB = 3 ;
+				rightEncChannelA = 5 ,
+				rightEncChannelB = 4 ;
 	
 	public static int
 				shifter = 0;
@@ -27,7 +28,10 @@ public class Constants {
 				rollersMotor = 9,
 				
 				puncherLock = 2	,
-				clawOpener = 1	;
+				clawOpener = 1	,
+				
+				armLimiter = 8	,
+				shooterCocked = 9;
 	
 	public static int
 				dControllerPort = 0	,
