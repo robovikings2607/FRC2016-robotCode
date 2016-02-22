@@ -68,7 +68,7 @@ public class PuncherArm {
 							sleepTime = 10;
 							punchWinder.setPosition(0);
 							punchWinder.set(-.3);
-							System.out.println("going home, pos: " + punchWinder.getPosition());
+							System.out.println("homing, pos: " + punchWinder.getPosition());
 							if (!shooterCocked.get() || punchWinder.getPosition() <= -100) step += 1;
 							break;
 						case 11:
@@ -248,6 +248,10 @@ public class PuncherArm {
 	
 	public boolean isShooterCocked() { //for photo-eye (false when it sees pickup)
 		return shooterCocked.get();
+	}
+
+	public boolean getArmLimiter() {	// for photo-eye at arm down position
+		return armLimiter.get();
 	}
 	
 	public void runWinderZeroer(){

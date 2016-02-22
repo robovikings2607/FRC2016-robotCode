@@ -76,7 +76,7 @@ public class Robot extends IterativeRobot {
     	arm.resetArm();
     	arm.process();
     	if(++counter >= 50){
-    		System.out.println( "ShooterEnabled: " + arm.isShooterEnabled() + "  Photoeye Reading: " + arm.isShooterCocked());
+    		System.out.println( "ShooterEnabled: " + arm.isShooterEnabled() + "  Shooter Eye: " + arm.isShooterCocked() + " Arm Eye: " + arm.getArmLimiter());
     		counter = 0;
     	}
     }
@@ -141,7 +141,7 @@ public class Robot extends IterativeRobot {
     	}
     	
     	if(++counter >= 50){
-    		System.out.println( "ShooterEnabled: " + arm.isShooterEnabled() + "  Photoeye Reading: " + arm.isShooterCocked());
+    		System.out.println( "ShooterEnabled: " + arm.isShooterEnabled() + "  Shooter Eye: " + arm.isShooterCocked() + " Arm Eye: " + arm.getArmLimiter());
     		counter = 0;
     	}
         
