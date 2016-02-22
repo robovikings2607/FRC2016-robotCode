@@ -52,6 +52,7 @@ public class Transmission implements SpeedController {
 		
 		if(encodersFlag) {
 			enc = new SmoothedEncoder(deviceID[3] , deviceID[4] , true , Encoder.EncodingType.k1X);
+			//pidLoop = new PIDController() 
 		}
 		
 	}
