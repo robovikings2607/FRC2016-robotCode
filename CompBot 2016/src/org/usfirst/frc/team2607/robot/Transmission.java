@@ -57,6 +57,14 @@ public class Transmission implements SpeedController {
 		
 	}
 
+	public void disableVelPID() {
+		pidLoop.disable();
+	}
+	
+	public void enableVelPID() {
+		pidLoop.enable();
+	}
+	
 	@Override
 	public double get() {
 		if(!encodersFlag){
