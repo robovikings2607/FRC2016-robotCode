@@ -5,6 +5,16 @@ Driver Controls
 	shift button?
 	
 Operator Controls
+
+	MikeyBear's Dream Control Scheme
+[DONE]	Shoot and Lock Piston and open the claw - Right Trigger
+[DONE]	Left and Right Bumpers - Rollers in and out
+
+	Up and down on D-Pad - move arm up and down
+
+[NOT YET]	button A - calculate and angle of shooter
+
+
 	Button A (1) - Roll in
 	Button Y (4) - Roll out
 	Button B (2) - Toggle claw open/close
@@ -83,8 +93,9 @@ Arm Positioning:
 	42 degrees is the optimal angle for shooting into the high goal from the edge of the outer works
 	
 MikeyBear's Dream Control Scheme
-	Shoot and Lock Piston and open the claw - Right Trigger
+[DONE]	Shoot and Lock Piston and open the claw - Right Trigger
 	Left and Right Bumpers - Rollers in and out
+
 	Up and down on D-Pad - move arm up and down
 	left stick - cock back the puncher
 	button A - calculate and angle of shooter

@@ -45,13 +45,15 @@ public class Transmission implements SpeedController {
 		motor1 = new CANTalon(deviceID[0]);
 		motor2 = new CANTalon(deviceID[1]);
 		motor3 = new CANTalon(deviceID[2]);
-		
+
+/*		Commenting this out, as follower mode exhibits wierd behavior when used with PID Controller and/or test mode.
+ * 		Need to diagnose fully in WPILib
 		motor3.changeControlMode(TalonControlMode.Follower);
 		motor3.set(deviceID[1]);
 		motor1.changeControlMode(TalonControlMode.Follower);
 		motor1.set(deviceID[1]);
-		motor1.reverseOutput(true);
-		
+*/		
+	
 		motor1.enableBrakeMode(false);
 		motor2.enableBrakeMode(false);
 		motor3.enableBrakeMode(false);
@@ -61,7 +63,7 @@ public class Transmission implements SpeedController {
 			enc.setPIDSourceType(PIDSourceType.kRate);
 			enc.reset();
 			enc.setDistancePerPulse(0.00766990393942820614859043794746);	// ((Wheel Di. (in) / 12) * pi) / enc counts
-			pidLoop = new RobovikingPIDController(0.0, 0.0, 0.0, .067, enc, motor2); 
+			pidLoop = new RobovikingPIDController(.001, 0.0, 0.0, .067, enc, this); 
 			pidLoop.setInputRange(-15.0, 15.0);
 			pidLoop.setOutputRange(-1.0, 1.0);
 			pidLoop.disable();
@@ -114,7 +116,9 @@ public class Transmission implements SpeedController {
 			
 		}
 */
+		motor1.set(-s);		
 		motor2.set(s);
+		motor3.set(s);
 		
 		if (Math.abs(s) <= .1) {
 			if (++brakePulseTick >= 10) {
@@ -145,7 +149,7 @@ public class Transmission implements SpeedController {
 	
 	@Override
 	public void pidWrite(double output) {
-		System.out.println("WARNING:  Transmission.pidWrite() called;  should not be being called by anything");
+		set(output);
 	}
 
 }

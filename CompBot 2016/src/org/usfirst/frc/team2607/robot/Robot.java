@@ -31,7 +31,7 @@ public class Robot extends IterativeRobot {
 	AutonomousEngine autoEngine;
 	
 	private double moveVal , rotateVal ;
-	private boolean controlSet , armInTestFlag;
+	private boolean controlSet , armInTestFlag, armOneShot;
 
 	
 	/**
@@ -70,6 +70,7 @@ public class Robot extends IterativeRobot {
     	arm.process();
     	if(++counter >= 50){
     		System.out.println( "ShooterEnabled: " + arm.isShooterEnabled() + "  Shooter Eye: " + arm.isShooterCocked() + " Arm Eye: " + arm.getArmLimiter());
+    		System.out.println("OPAD POV: " + oController.getPOV(0));
     		counter = 0;
     	}
     }
@@ -104,11 +105,11 @@ public class Robot extends IterativeRobot {
     	}
     	
     	//Controlling the rollers
-    	if(oController.getRawButton(RobovikingStick.xBoxButtonY) && !controlSet) {
-    		arm.rockAndRoll(1.0);
-    	}
-    	else if(oController.getRawButton(RobovikingStick.xBoxButtonA) && !controlSet) {
+    	if(oController.getRawButton(RobovikingStick.xBoxRightBumper) && !controlSet) {
     		arm.rockAndRoll(-1.0);
+    	}
+    	else if(oController.getRawButton(RobovikingStick.xBoxLeftBumper) && !controlSet) {
+    		arm.rockAndRoll(1.0);
     	}
     	else {
     		arm.rockAndRoll(0);
@@ -130,35 +131,64 @@ public class Robot extends IterativeRobot {
     		arm.rotateArmXDegrees(5.0); // new SRXProfile(18, 4.861, 250, 250, 10));
     	}
 */
+
     	if(!armInTestFlag){
-	    	if (oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonY) && !arm.getArmLimiter() && controlSet) {
+/*
+    		if (oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonY) && !arm.getArmLimiter() && controlSet) {
 	    		arm.rotateArmXDegrees(-47);
 	    	}
 	    	if(oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonA) && arm.getArmLimiter() && controlSet) {
 	    		arm.rotateArmXDegrees(47);
 	    	}
+*/			switch (oController.getPOV(0)) {
+				case 0:
+					if (!armOneShot) arm.rotateArmXDegrees(-47);
+					armOneShot = true;
+					break;
+				case 180:
+					if (!armOneShot) arm.rotateArmXDegrees(47);
+					armOneShot = true;
+					break;
+				case -1:
+				default:
+					armOneShot= false;
+					break;
+			}
     	}
+    	
+    	
+    	
     	if(++counter >= 50){
     		System.out.println( "ShooterEnabled: " + arm.isShooterEnabled() + "  Shooter Eye: " + arm.isShooterCocked() + " Arm Eye: " + arm.getArmLimiter());
     		counter = 0;
     	}
         
     }
-    
+// WIERD TALON SRX BEHAVIORS:
+/* For some reason, the drive Talons would lose master/follower when testing the below.  Could be due either to 
+ * something in the PID Controller or Test Mode - need to figure out why this is.
+ * 		- if we start in Teleop, Talons are in master/follower
+ * 		- if we move to test and run the PID, only "motor2" (the master) runs...the other two do not follow    
+ * As a workaround, updating the Transmission class to just set all three motors directly.
+ *
+ * Also the encoder positions seem to get messed up when switching from Test to Teleop - winder and arm do not work properly
+ * even if we just restart code.  Need to power cycle to get normal behavior
+ */    
     private RobovikingDriveTrainProfileDriver d;
     public void testInit() {
     	TrajectoryGenerator.Config config = new TrajectoryGenerator.Config();
         config.dt = .01;
-        config.max_acc = 10.0;
+        config.max_acc = 8.0;
         config.max_jerk = 60.0;
-        config.max_vel = 15.0;
+        config.max_vel = 6.0;
         
         final double kWheelbaseWidth = 25.25/12;
 
         WaypointSequence p = new WaypointSequence(10);
         p.addWaypoint(new WaypointSequence.Waypoint(0, 0, 0));
-        p.addWaypoint(new WaypointSequence.Waypoint(7.0, 0, 0));
-        p.addWaypoint(new WaypointSequence.Waypoint(14.0, 1.0, Math.PI / 12.0));
+        //p.addWaypoint(new WaypointSequence.Waypoint(5, 7.0, 0));
+        p.addWaypoint(new WaypointSequence.Waypoint(7.0, 7.0, Math.PI / 3.0));
+        p.addWaypoint(new WaypointSequence.Waypoint(10.0, 10.0, 0));
 
         Path path = PathGenerator.makePath(p, config,
             kWheelbaseWidth, "Corn Dogs");
@@ -169,11 +199,9 @@ public class Robot extends IterativeRobot {
     
     public void testPeriodic() {
   	    	
-    	if (++counter >= 25) {
-    		System.out.println("DriveProfile running: " + d.isRunning() + " done: " + d.isDone() + " PID enabled: " + 
-    						leftMotors.pidLoop.isEnabled() + "," + rightMotors.pidLoop.isEnabled());
+    	if (++counter >= 30) {
     		System.out.println("Left SP: " + leftMotors.pidLoop.getSetpoint() + " Right SP: " + rightMotors.pidLoop.getSetpoint());
-    		System.out.println(leftMotors.pidLoop.get());
+    		System.out.println("Left enc: " + leftMotors.enc.getRate() + " Right enc: " + rightMotors.enc.getRate());
     		counter = 0;
     	}
     	
@@ -208,10 +236,12 @@ public class Robot extends IterativeRobot {
     	// testing of velocity PID on Transmission 
     	if (dController.getRawButton(RobovikingStick.xBoxButtonY)) {
     		leftMotors.enableVelPID();
-    		leftMotors.setVelSP(7.0);
+    		leftMotors.setVelSP(4.0);
     		rightMotors.enableVelPID();
-    		rightMotors.setVelSP(7.0);
-    	} else {
+    		rightMotors.setVelSP(-4.0);
+    	}  
+    	
+    	if (dController.getButtonReleasedOneShot(RobovikingStick.xBoxButtonY)){
     		leftMotors.disableVelPID();
     		rightMotors.disableVelPID();
     		leftMotors.set(0);

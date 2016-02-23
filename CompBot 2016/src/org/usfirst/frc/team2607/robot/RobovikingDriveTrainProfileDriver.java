@@ -38,7 +38,7 @@ public class RobovikingDriveTrainProfileDriver {
 	    	}
 	    	step = (System.currentTimeMillis() - startTime) / (long)(dtSeconds * 1000);
 	    	try {
-	    		double l = leftVelPts.get((int)step), r = rightVelPts.get((int)step);
+	    		double l = leftVelPts.get((int)step), r = -rightVelPts.get((int)step);
 	    		System.out.println("Step: " + step + " left SP: " + l + " right SP: " + r);
 	    		leftMotors.setVelSP(l);
 	    		rightMotors.setVelSP(r);	    		
@@ -62,7 +62,6 @@ public class RobovikingDriveTrainProfileDriver {
 		this.path = path;
 		this.leftVelPts = new ArrayList<Double>();
 		this.rightVelPts = new ArrayList<Double>();
-		
 		//store the velocity pts
 		numPoints = path.getLeftWheelTrajectory().getNumSegments();
 		lt = this.path.getLeftWheelTrajectory();
