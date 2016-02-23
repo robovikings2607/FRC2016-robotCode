@@ -16,7 +16,7 @@ public class RobovikingDriveTrainProfileDriver {
 	private ArrayList<Double> leftVelPts, rightVelPts;
 	private int numPoints;
 	private Trajectory lt, rt;
-	private boolean running, done;
+	private boolean running = false, done = false;
 	private long step;
 	
 	private class PeriodicRunnable implements java.lang.Runnable {
@@ -32,6 +32,7 @@ public class RobovikingDriveTrainProfileDriver {
 	    		firstTime = false;
 	    		startTime = System.currentTimeMillis();
 	    		running = true;
+	    		done = false;
 	    		leftMotors.enableVelPID();
 	    		rightMotors.enableVelPID();
 	    	}
@@ -61,9 +62,6 @@ public class RobovikingDriveTrainProfileDriver {
 		this.path = path;
 		this.leftVelPts = new ArrayList<Double>();
 		this.rightVelPts = new ArrayList<Double>();
-		
-		running = false;
-		done = false;
 		
 		//store the velocity pts
 		numPoints = path.getLeftWheelTrajectory().getNumSegments();

@@ -89,7 +89,7 @@ public class AutonomousEngine implements Runnable {
 				break;
 			case 1:
 				System.out.println("Running Auto 1");
-//				oneCanClockwise();
+//				doSomethingInteresting();
 				mode = 0;
 				break;
 

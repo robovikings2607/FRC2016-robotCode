@@ -44,11 +44,7 @@ TODO:
 	- get max RPM for both high- & low- gears 
 	- test speed control PID on roboRIO with just feedforward term
 
-5) change how claw is opened when shooting
-	- move from PuncherArm.shoot() into Robot, so that we can have a manual mode (testPeriodic) where PuncherArm.shoot()
-	just releases the latch and doesn't open the claw	
-
-6) add slow speed for rollers so centering the ball is easier (just a small "tap" outwards of the roller)
+5) (?) add slow speed for rollers so centering the ball is easier (just a small "tap" outwards of the roller) (?)
 
 
 	 

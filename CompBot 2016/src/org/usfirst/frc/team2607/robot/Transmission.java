@@ -24,7 +24,7 @@ public class Transmission implements SpeedController {
 	CANTalon motor1 , motor2 , motor3;
 	
 	Encoder enc;
-	PIDController pidLoop;
+	RobovikingPIDController pidLoop;
 	
 	private boolean encodersFlag = false;
 	private boolean invertedFlag = false;
@@ -57,13 +57,14 @@ public class Transmission implements SpeedController {
 		motor3.enableBrakeMode(false);
 		
 		if(encodersFlag) {
-			enc = new Encoder(deviceID[3] , deviceID[4] , false, Encoder.EncodingType.k1X);
+			enc = new SmoothedEncoder(deviceID[3] , deviceID[4] , false, Encoder.EncodingType.k1X);
 			enc.setPIDSourceType(PIDSourceType.kRate);
 			enc.reset();
-//			enc.setDistancePerPulse(0.00766990393942820614859043794746);	// ((Wheel Di. (in) / 12) * pi) / enc counts
-			pidLoop = new PIDController(0.0, 0.0, 0.0, .067, enc, motor2); 
-			pidLoop.setInputRange(-7000, 7000.0);
-//			pidLoop.setOutputRange(-15.0, 15.0);
+			enc.setDistancePerPulse(0.00766990393942820614859043794746);	// ((Wheel Di. (in) / 12) * pi) / enc counts
+			pidLoop = new RobovikingPIDController(0.0, 0.0, 0.0, .067, enc, motor2); 
+			pidLoop.setInputRange(-15.0, 15.0);
+			pidLoop.setOutputRange(-1.0, 1.0);
+			pidLoop.disable();
 			//pidLoop.setAbsoluteTolerance(.5);
 		}
 		
@@ -72,6 +73,7 @@ public class Transmission implements SpeedController {
 	public void disableVelPID() {
 		if (!encodersFlag) return;
 		pidLoop.disable();
+		motor2.set(0);
 	}
 	
 	public void enableVelPID() {
@@ -143,7 +145,7 @@ public class Transmission implements SpeedController {
 	
 	@Override
 	public void pidWrite(double output) {
-		motor2.set(output);
+		System.out.println("WARNING:  Transmission.pidWrite() called;  should not be being called by anything");
 	}
 
 }

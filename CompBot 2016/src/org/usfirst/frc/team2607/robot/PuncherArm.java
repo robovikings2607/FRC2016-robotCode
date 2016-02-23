@@ -33,7 +33,7 @@ public class PuncherArm {
 					switch (step) {
 						case 0: 
 							punchWinder.setPosition(0);
-							sleepTime = 20; 
+							sleepTime = 100; 
 							break;
 						case 1:			// starting from the cocked position...
 							shoot();	// release lock
@@ -59,7 +59,7 @@ public class PuncherArm {
 							break;
 						case 5:
 							punchWinder.set(0);		// stop, sequence complete
-							sleepTime = 20;
+							sleepTime = 100;
 							step = 0;
 							break;
 						// auto shoot & re-cock sequence stops here, below is zero'ing sequence
@@ -73,10 +73,11 @@ public class PuncherArm {
 							break;
 						case 11:
 							punchWinder.set(0);
-							sleepTime = 20;
+							sleepTime = 100;
 							shooterEnabled = true;
+							step = 0;
 							break;
-						default: sleepTime = 20; break;
+						default: sleepTime = 100; break;
 					}
 					Thread.sleep(sleepTime);
 				} catch (Exception e) { }
@@ -140,7 +141,7 @@ public class PuncherArm {
 		rollerz = new CANTalon(Constants.rollersMotor);
 		
 		armProfile = new SRXProfileDriver(armRotator);
-		new PowerLogger().start();
+//		new PowerLogger().start();
 		
     	// check if the shooter is at home (cocked) position, if not disable it until the zero'ing process is run
 		armLimiter = new DigitalInput(Constants.armLimiter);
@@ -181,12 +182,13 @@ public class PuncherArm {
 	}
 	
 	public void shoot() {
-		santaClaw.set(false);		// open the pickup claw
-		punchLock.set(true);		// 
+		punchLock.set(true);				// release the shooter lock
 	}
 	
-	//Basic method for setting the puncher winder motor to spin
-	public void windPuncher(double jubbs) {
+	//Basic method for setting the puncher winder motor to spin, to allow for manual maintenance in 
+	//test mode
+	public void winderManualRun(double jubbs) {
+		if (jubbs != 0.0) shooterEnabled = false;
 		punchWinder.set(jubbs);
 	}
 
@@ -255,7 +257,7 @@ public class PuncherArm {
 		return armLimiter.get();
 	}
 	
-	public void runWinderZeroer(){
+	public void executeWinderHomingSequence(){
 		winderThread.goToHomePosition();
 	}
 	
@@ -263,7 +265,8 @@ public class PuncherArm {
 		winderThread.startFromUncockedPosition();
 	}
 	
-	public void startFromCockedPosition(){
+	public void executeShootAndReloadSequence(){
+		santaClaw.set(false);						// open the pickup claw
 		winderThread.startFromCockedPosition();
 	}
 	
