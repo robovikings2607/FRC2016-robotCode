@@ -6,6 +6,11 @@ import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.PIDController;
+import edu.wpi.first.wpilibj.PIDSourceType;
+
+
+// lowGear maxRPS 2.39
+// highGear maxRPS 7.16
 
 /**
  * SpeedController for a 3-CIM Shifting gear box. One motor
@@ -25,6 +30,7 @@ public class Transmission implements SpeedController {
 	private boolean invertedFlag = false;
 	private int brakePulseTick = 0;
 	private boolean enableBrakeMode = false;
+	private double curMaxSpeed;
 	
 	/**
 	 * Constructor for the 'Transmission' SpeedController
@@ -52,17 +58,27 @@ public class Transmission implements SpeedController {
 		
 		if(encodersFlag) {
 			enc = new SmoothedEncoder(deviceID[3] , deviceID[4] , true , Encoder.EncodingType.k1X);
-			//pidLoop = new PIDController() 
+			pidLoop = new PIDController(0.0, 0.0, 0.0, .067, enc, motor2); 
+			enc.setDistancePerPulse(0.00766990393942820614859043794746);	// ((Wheel Di. (in) / 12) * pi) / enc counts
+			pidLoop.setInputRange(-15.0, 15.0);
 		}
 		
 	}
 
 	public void disableVelPID() {
+		if (!encodersFlag) return;
 		pidLoop.disable();
 	}
 	
 	public void enableVelPID() {
+		if (!encodersFlag) return;
 		pidLoop.enable();
+		enc.setPIDSourceType(PIDSourceType.kRate);		
+	}
+	
+	public void setVelSP(double speed) {		// passed in as fps, from motion profiler
+		if (!encodersFlag) return;
+		pidLoop.setSetpoint(speed);
 	}
 	
 	@Override
@@ -84,12 +100,16 @@ public class Transmission implements SpeedController {
 		if(invertedFlag) {
 			s = -s;
 		}
+/*
 		if(!encodersFlag) {
 			motor2.set(s);
 		}
 		else {
 			
 		}
+*/
+		motor2.set(s);
+		
 		if (Math.abs(s) <= .1) {
 			if (++brakePulseTick >= 10) {
 			enableBrakeMode = !enableBrakeMode;

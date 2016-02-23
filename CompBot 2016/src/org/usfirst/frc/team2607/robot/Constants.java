@@ -9,8 +9,7 @@ public class Constants {
 				
 				leftEncChannelA = 7	,
 				leftEncChannelB = 6	;
-	
-	
+				
 	private static int
 				rightMotor1 = 6	,
 				rightMotor2 = 4	,

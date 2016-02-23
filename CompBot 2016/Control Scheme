@@ -47,6 +47,10 @@ TODO:
 5) change how claw is opened when shooting
 	- move from PuncherArm.shoot() into Robot, so that we can have a manual mode (testPeriodic) where PuncherArm.shoot()
 	just releases the latch and doesn't open the claw	
+
+6) add slow speed for rollers so centering the ball is easier (just a small "tap" outwards of the roller)
+
+
 	 
 Arm Positioning:
 	Talon encoder provides count of cim motor revs, forward >0, reverse <0

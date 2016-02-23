@@ -2,6 +2,10 @@
 package org.usfirst.frc.team2607.robot;
 
 import com.kauailabs.navx.frc.AHRS;
+import com.team254.lib.trajectory.Path;
+import com.team254.lib.trajectory.PathGenerator;
+import com.team254.lib.trajectory.TrajectoryGenerator;
+import com.team254.lib.trajectory.WaypointSequence;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.RobotDrive;
@@ -159,8 +163,34 @@ public class Robot extends IterativeRobot {
     /**
      * This function is called periodically during test mode
      */
-    public void testPeriodic() {
+    private RobovikingDriveTrainProfileDriver d;
+    public void testInit() {
+        TrajectoryGenerator.Config config = new TrajectoryGenerator.Config();
+        config.dt = .01;
+        config.max_acc = 10.0;
+        config.max_jerk = 60.0;
+        config.max_vel = 15.0;
+        
+        final double kWheelbaseWidth = 25.25/12;
 
+        WaypointSequence p = new WaypointSequence(10);
+        p.addWaypoint(new WaypointSequence.Waypoint(0, 0, 0));
+        p.addWaypoint(new WaypointSequence.Waypoint(7.0, 0, 0));
+        p.addWaypoint(new WaypointSequence.Waypoint(14.0, 1.0, Math.PI / 12.0));
+
+        Path path = PathGenerator.makePath(p, config,
+            kWheelbaseWidth, "Corn Dogs");
+    	
+    	d = new RobovikingDriveTrainProfileDriver(leftMotors, rightMotors, config.dt, path);
+    }
+    
+    public void testPeriodic() {
+  	    	
+    	if (++counter >= 25) {
+    		System.out.println("DriveProfile running: " + d.isRunning() + " done: " + d.isDone());
+    		counter = 0;
+    	}
+    	
     	// shooter winding manual control
     	if(oController.getRawButton(RobovikingStick.xBoxLeftBumper)) {  // drive plunger forward (loosen)
     		arm.windPuncher(.6);
@@ -187,8 +217,24 @@ public class Robot extends IterativeRobot {
     	else if(oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonA) && arm.getArmLimiter() ) {
     		armInTestFlag = true;
     		arm.rotateArmXDegrees(5.0); // new SRXProfile(18, 4.861, 250, 250, 10));
+    	}  	  	
+    	
+    	// testing of velocity PID on Transmission 
+    	if (dController.getRawButton(RobovikingStick.xBoxButtonY)) {
+    		leftMotors.enableVelPID();
+    		leftMotors.setVelSP(7.0);
+    		rightMotors.enableVelPID();
+    		rightMotors.setVelSP(7.0);
+    	} else {
+    		leftMotors.disableVelPID();
+    		rightMotors.disableVelPID();
+    		leftMotors.set(0);
+    		rightMotors.set(0);
     	}
-
+    	
+    	if (dController.getButtonPressedOneShot(RobovikingStick.xBoxButtonX)) {
+    		d.followPath();
+    	}
     }
     
 }

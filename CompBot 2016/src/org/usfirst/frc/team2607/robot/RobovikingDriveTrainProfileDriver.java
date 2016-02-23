@@ -2,42 +2,70 @@ package org.usfirst.frc.team2607.robot;
 
 import java.util.ArrayList;
 
-import org.usfirst.frc.team2607.robot.SRXProfileDriver.PeriodicRunnable;
-
 import com.team254.lib.trajectory.Path;
 import com.team254.lib.trajectory.Trajectory;
 
 import edu.wpi.first.wpilibj.Notifier;
-import edu.wpi.first.wpilibj.RobotDrive;
 
 public class RobovikingDriveTrainProfileDriver {
 	
 	private Transmission leftMotors, rightMotors;
 	//private PIDController positionPID;
-	private double driveTrainWidthInches;
-	private int dtMS;
+	private double dtSeconds;
 	private Path path;
 	private ArrayList<Double> leftVelPts, rightVelPts;
 	private int numPoints;
+	private Trajectory lt, rt;
+	private boolean running, done;
+	private long step;
 	
 	private class PeriodicRunnable implements java.lang.Runnable {
-	    public void run() {      }
+		private long startTime;
+		private boolean firstTime;
+		
+		public PeriodicRunnable() {
+			firstTime = true;
+		}
+		
+		public void run() {
+	    	if (firstTime) {
+	    		firstTime = false;
+	    		startTime = System.currentTimeMillis();
+	    		running = true;
+	    		leftMotors.enableVelPID();
+	    		rightMotors.enableVelPID();
+	    	}
+	    	step = (System.currentTimeMillis() - startTime) / (long)(dtSeconds * 1000);
+	    	try {
+	    		double l = leftVelPts.get((int)step), r = rightVelPts.get((int)step);
+	    		System.out.println("Step: " + step + " left SP: " + l + " right SP: " + r);
+	    		leftMotors.setVelSP(l);
+	    		rightMotors.setVelSP(r);	    		
+	    	} catch (Exception e) {
+	    		pointExecutor.stop();
+	    		running = false;
+	    		done = true;
+	    		leftMotors.disableVelPID();
+	    		rightMotors.disableVelPID();
+	    	}
+	    }
 	}
 
 	Notifier pointExecutor = new Notifier(new PeriodicRunnable());
 
 	public RobovikingDriveTrainProfileDriver(Transmission leftMotors, Transmission rightMotors, 
-										int dtMS, double driveTrainWidthInches, Path path) {
+										double dtSeconds, Path path) {
 		this.leftMotors = leftMotors;
 		this.rightMotors = rightMotors;
-		this.driveTrainWidthInches = driveTrainWidthInches;
-		this.dtMS = dtMS;
+		this.dtSeconds = dtSeconds;
 		this.path = path;
+		running = false;
+		done = false;
 		
 		//store the velocity pts
 		numPoints = path.getLeftWheelTrajectory().getNumSegments();
-		Trajectory lt = path.getLeftWheelTrajectory(),
-				   rt = path.getRightWheelTrajectory();
+		lt = this.path.getLeftWheelTrajectory();
+		rt = this.path.getRightWheelTrajectory();
 		
 		for (int i = 0; i < numPoints; i++) {
 			leftVelPts.add(lt.getSegment(i).vel);
@@ -45,8 +73,16 @@ public class RobovikingDriveTrainProfileDriver {
 		}
 	}
 
+	public boolean isRunning() {
+		return running;
+	}
+	
+	public boolean isDone() {
+		return done;
+	}
+	
 	public void followPath() {
-		
+		pointExecutor.startPeriodic(dtSeconds / 2.0);
 	}
 	
 }
