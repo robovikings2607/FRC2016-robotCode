@@ -27,7 +27,7 @@ public class Robot extends IterativeRobot {
 	AutonomousEngine autoEngine;
 	
 	private double moveVal , rotateVal ;
-	private boolean controlSet ;
+	private boolean controlSet , armInTestFlag;
 
 	
 	/**
@@ -47,6 +47,7 @@ public class Robot extends IterativeRobot {
     	oController = new RobovikingStick(Constants.oControllerPort);
     	
     	controlSet = false;
+    	armInTestFlag = false;
     	autoEngine = new AutonomousEngine(rDrive, arm, shifter);  	    	
     }
     
@@ -140,11 +141,13 @@ public class Robot extends IterativeRobot {
     		arm.rotateArmXDegrees(5.0); // new SRXProfile(18, 4.861, 250, 250, 10));
     	}
 */
-    	if (oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonY) && !arm.getArmLimiter() && controlSet) {
-    		arm.rotateArmXDegrees(-47);
-    	}
-    	if(oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonA) && arm.getArmLimiter() && controlSet) {
-    		arm.rotateArmXDegrees(47);
+    	if(!armInTestFlag){
+	    	if (oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonY) && !arm.getArmLimiter() && controlSet) {
+	    		arm.rotateArmXDegrees(-47);
+	    	}
+	    	if(oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonA) && arm.getArmLimiter() && controlSet) {
+	    		arm.rotateArmXDegrees(47);
+	    	}
     	}
     	if(++counter >= 50){
     		System.out.println( "ShooterEnabled: " + arm.isShooterEnabled() + "  Shooter Eye: " + arm.isShooterCocked() + " Arm Eye: " + arm.getArmLimiter());
@@ -178,9 +181,11 @@ public class Robot extends IterativeRobot {
     	}
     	
     	if(oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonY) ) {
+    		armInTestFlag = true;
     		arm.rotateArmXDegrees(-5.0); //(new SRXProfile(-18, -4.861, 250, 250, 10));
     	}
     	else if(oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonA) && arm.getArmLimiter() ) {
+    		armInTestFlag = true;
     		arm.rotateArmXDegrees(5.0); // new SRXProfile(18, 4.861, 250, 250, 10));
     	}
 
