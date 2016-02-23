@@ -221,6 +221,21 @@ public class PuncherArm {
 		System.out.println("Arm command: " + degToRotate + ", total from start pos: " + armDegreesFromStart);
 	}
 	
+	// move arm to an absolute encoder position (# of turns from 0)
+	// will only work if arm is "homed" to a known 0 position 
+	// assume this home 0 = fully lowered;  which means absolute position must always be < 0
+	//		- negative/reverse travel raises arm;  positive/forward travel lowers arm
+/*
+	public void rotateArmToPosition(double targetPosition) {
+		//		- distance to travel is (-(currentPos - targetPos))
+		double distance = -((armRotator.getPosition() - targetPosition));
+		//		- distance and maxspeed must have same sign for profile generation to work
+		double direction = (distance) / Math.abs(distance);
+		double maxSpeed = direction * armRotatorMaxSpeed;
+		armProfile.setMotionProfile(new SRXProfile(maxSpeed, armRotator.getPosition(), distance, 250, 250, 10));
+		armProfile.startMotionProfile();
+	}
+*/	
 	public void rockAndRoll(double jubbs) {
 		rollerz.set(jubbs);
 	}
