@@ -23,7 +23,7 @@ public class Transmission implements SpeedController {
 	
 	CANTalon motor1 , motor2 , motor3;
 	
-	SmoothedEncoder enc;
+	Encoder enc;
 	PIDController pidLoop;
 	
 	private boolean encodersFlag = false;
@@ -57,10 +57,14 @@ public class Transmission implements SpeedController {
 		motor3.enableBrakeMode(false);
 		
 		if(encodersFlag) {
-			enc = new SmoothedEncoder(deviceID[3] , deviceID[4] , true , Encoder.EncodingType.k1X);
+			enc = new Encoder(deviceID[3] , deviceID[4] , false, Encoder.EncodingType.k1X);
+			enc.setPIDSourceType(PIDSourceType.kRate);
+			enc.reset();
+//			enc.setDistancePerPulse(0.00766990393942820614859043794746);	// ((Wheel Di. (in) / 12) * pi) / enc counts
 			pidLoop = new PIDController(0.0, 0.0, 0.0, .067, enc, motor2); 
-			enc.setDistancePerPulse(0.00766990393942820614859043794746);	// ((Wheel Di. (in) / 12) * pi) / enc counts
-			pidLoop.setInputRange(-15.0, 15.0);
+			pidLoop.setInputRange(-7000, 7000.0);
+//			pidLoop.setOutputRange(-15.0, 15.0);
+			//pidLoop.setAbsoluteTolerance(.5);
 		}
 		
 	}
@@ -73,7 +77,7 @@ public class Transmission implements SpeedController {
 	public void enableVelPID() {
 		if (!encodersFlag) return;
 		pidLoop.enable();
-		enc.setPIDSourceType(PIDSourceType.kRate);		
+				
 	}
 	
 	public void setVelSP(double speed) {		// passed in as fps, from motion profiler
@@ -139,7 +143,7 @@ public class Transmission implements SpeedController {
 	
 	@Override
 	public void pidWrite(double output) {
-		
+		motor2.set(output);
 	}
 
 }

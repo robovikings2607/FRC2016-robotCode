@@ -41,8 +41,8 @@ public class Robot extends IterativeRobot {
     public void robotInit() {
     	
     	shifter = new Solenoid(1,Constants.shifter);
-    	leftMotors = new Transmission(Constants.leftDeviceIDs , false);
-    	rightMotors = new Transmission(Constants.rightDeviceIDs , false);
+    	leftMotors = new Transmission(Constants.leftDeviceIDs , true);
+    	rightMotors = new Transmission(Constants.rightDeviceIDs , true);
     	rDrive = new RobotDrive(leftMotors , rightMotors);
     	rDrive.setSafetyEnabled(false);
     	arm = new PuncherArm();
@@ -182,12 +182,16 @@ public class Robot extends IterativeRobot {
             kWheelbaseWidth, "Corn Dogs");
     	
     	d = new RobovikingDriveTrainProfileDriver(leftMotors, rightMotors, config.dt, path);
+    	shifter.set(true);
     }
     
     public void testPeriodic() {
   	    	
     	if (++counter >= 25) {
-    		System.out.println("DriveProfile running: " + d.isRunning() + " done: " + d.isDone());
+    		System.out.println("DriveProfile running: " + d.isRunning() + " done: " + d.isDone() + " PID enabled: " + 
+    						leftMotors.pidLoop.isEnabled() + "," + rightMotors.pidLoop.isEnabled());
+    		System.out.println("Left SP: " + leftMotors.pidLoop.getSetpoint() + " Right SP: " + rightMotors.pidLoop.getSetpoint());
+    		System.out.println(leftMotors.pidLoop.get());
     		counter = 0;
     	}
     	

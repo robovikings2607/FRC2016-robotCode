@@ -59,6 +59,9 @@ public class RobovikingDriveTrainProfileDriver {
 		this.rightMotors = rightMotors;
 		this.dtSeconds = dtSeconds;
 		this.path = path;
+		this.leftVelPts = new ArrayList<Double>();
+		this.rightVelPts = new ArrayList<Double>();
+		
 		running = false;
 		done = false;
 		
