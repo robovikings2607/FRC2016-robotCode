@@ -4,16 +4,13 @@ Driver Controls
 	self-explanatory
 	shift button?
 	
-Operator Controls
+Operator Controls follow MikeyBear's Dream Control Scheme 
 
-	MikeyBear's Dream Control Scheme
 [DONE]	Shoot and Lock Piston and open the claw - Right Trigger
 [DONE]	Left and Right Bumpers - Rollers in and out
+[DONE]  Up and down on D-Pad - move arm up and down
 
-	Up and down on D-Pad - move arm up and down
-
-[NOT YET]	button A - calculate and angle of shooter
-
+Maintenance Controls (Test Mode)
 
 	Button A (1) - Roll in
 	Button Y (4) - Roll out

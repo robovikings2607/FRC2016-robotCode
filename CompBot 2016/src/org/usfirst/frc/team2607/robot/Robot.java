@@ -142,11 +142,11 @@ public class Robot extends IterativeRobot {
 	    	}
 */			switch (oController.getPOV(0)) {
 				case 0:
-					if (!armOneShot) arm.rotateArmXDegrees(-47);
+					if (!armOneShot && !arm.getArmLimiter()) arm.rotateArmXDegrees(-47);
 					armOneShot = true;
 					break;
 				case 180:
-					if (!armOneShot) arm.rotateArmXDegrees(47);
+					if (!armOneShot && arm.getArmLimiter()) arm.rotateArmXDegrees(47);
 					armOneShot = true;
 					break;
 				case -1:
