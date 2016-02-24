@@ -238,7 +238,7 @@ public class Robot extends IterativeRobot {
     		leftMotors.enableVelPID();
     		leftMotors.setVelSP(4.0);
     		rightMotors.enableVelPID();
-    		rightMotors.setVelSP(-4.0);
+    		rightMotors.setVelSP(-4.0);			// the right side motors are reversed
     	}  
     	
     	if (dController.getButtonReleasedOneShot(RobovikingStick.xBoxButtonY)){

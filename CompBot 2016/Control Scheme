@@ -2,7 +2,9 @@ CompBot 2016 Control Scheme
 
 Driver Controls
 	self-explanatory
-	shift button?
+		- left stick Y axis is forward/reverse, right stick X axis is left/right turn
+	right stick button is shift
+		- code defaults to high gear (solenoid set to true on init) 
 	
 Operator Controls follow MikeyBear's Dream Control Scheme 
 
@@ -12,21 +14,17 @@ Operator Controls follow MikeyBear's Dream Control Scheme
 
 Maintenance Controls (Test Mode)
 
-	Button A (1) - Roll in
-	Button Y (4) - Roll out
+	Right Bumper (6) - tighten winder (motor spins reverse/negative voltage; encoder position decreases)
+	Left Bumper (5) - loosen winder (motor spins forward/positive voltage; encoder position increases)
+
+	Left Trigger (axis 2) - lock the puncher 
+	Right Trigger (axis 3) - shoot the puncher 
+
+	Button A (1) - lower the arm 5 degrees
+	Button Y (4) - lift the arm 5 degrees
+
 	Button B (2) - Toggle claw open/close
 	
-		Right Bumper (6) - tighten winder (motor spins reverse/negative voltage; encoder position decreases)
-		Left Bumper (5) - loosen winder (motor spins forward/positive voltage; encoder position increases)
-			- the above two operator controls will change once zero'ing sequence is implemented
-			
-	Left Trigger (axis 2) - locks the puncher 
-	Right Trigger (axis 3) - shoot the puncher 
-	
-	While pressing the Left stick:
-		Button Y (4) - raise the arm 10 degrees
-		Button A (1) - lower the arm 10 degrees
-
 TODO:
 1) Need to determine start-up procedure for field
 	- when powered off arm will fall if below ~45deg (gravity)
@@ -39,20 +37,32 @@ TODO:
 
 	- tested and clearing faults;  JNI methods not implemented for reading SRX faults so robot code
 	crashes.  Therefore can't use these, and will have to eliminate the forward soft limit eventually
-	- will need to try using just velocity PID (with feedforward only) to move to 0 position
+	- will need to try using just velocity PID (with feedforward only) or VBUS with low command 
+	to move to 0 position
 	 
 
 2) Add TCP code (or user network tables) for data exchange with vision app
 
 3) Plan and code autonomous routine for HH (low bar, turn, shoot)
 
-4) Confirm drive base encoders are sensing and incorporate 
-	- check direction (e.g. in-phase or out-of-phase)
-	- get max RPM for both high- & low- gears 
-	- test speed control PID on roboRIO with just feedforward term
+4) (?) add slow speed for rollers so centering the ball is easier (just a small "tap" outwards of the roller) (?)
 
-5) (?) add slow speed for rollers so centering the ball is easier (just a small "tap" outwards of the roller) (?)
+5) refactor SRXProfileDriver as a thread, and wait for Talon to report that it's MPE state is disabled before
+pushing new profile - the example driver from Omar doesn't do this, but per his response to my question it's
+proper procedure to wait until the Talon reports it's MPE state as disabled before pushing new points
+	- with driver as a thread we don't have to call the driver control() (arm.process()) from teleopPeriodic 
+	(or autonomousPeriodic)
 
+6) add PDP logger/monitor
+	- drive train?
+
+7) ? check for winder stall as a protection against over driving when moving up to grab plunger?
+	- stall is probably too late actually....check current being drawn normally, and watch for spike which would
+	indicate it's started pushing the plunger up?
+	- check encoder position during movement for consistency? (i.e. position delta should stay pretty consistent)
+
+8) drive train position PID tuning
+	- separate project for this to keep things simple
 
 	 
 Arm Positioning:
@@ -89,13 +99,6 @@ Arm Positioning:
 		
 	42 degrees is the optimal angle for shooting into the high goal from the edge of the outer works
 	
-MikeyBear's Dream Control Scheme
-[DONE]	Shoot and Lock Piston and open the claw - Right Trigger
-	Left and Right Bumpers - Rollers in and out
-
-	Up and down on D-Pad - move arm up and down
-	left stick - cock back the puncher
-	button A - calculate and angle of shooter
 	
 	
 	
