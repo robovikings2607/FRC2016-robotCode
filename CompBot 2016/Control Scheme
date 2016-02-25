@@ -1,3 +1,16 @@
+Testing to do:
+1) boot up with arm lowered; verify arm positioning works with new driver class
+	a) run arm up; when up it shouldn't go up again
+	b) run arm down; when down it shouldn't go down again 
+2) change code to use an array of absolute positions rather than rotating by angle
+	a) fully test, including pushing up while arm is already moving up (should have no effect, 
+	just finish original profile)
+3) test arm homing procedure 
+	a) boot up with arm up; verify can't move arm in teleop;  verify homing works
+	b) after homing verify arm positioning works
+4) position PID tuning for drive train
+	a) run from autonomous rather than test to keep it simple and verify no unexpected wierdness	
+
 CompBot 2016 Control Scheme
 
 Driver Controls

@@ -13,7 +13,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 public class PuncherArm {
 	
 	private CANTalon punchWinder , armRotator , rollerz;
-	private SRXProfileDriver armProfile;
+	private RobovikingSRXProfileDriver armProfile;
 	private Solenoid punchLock , santaClaw;
 	private DigitalInput armLimiter , shooterCocked;
 	private final double armRotatorMaxSpeed = 18.0;  // cim rotations per second, for motion profiles
@@ -163,7 +163,8 @@ public class PuncherArm {
 		armRotator = new CANTalon(Constants.armMotor);
 		rollerz = new CANTalon(Constants.rollersMotor);
 		
-		armProfile = new SRXProfileDriver(armRotator);
+		armProfile = new RobovikingSRXProfileDriver(armRotator);
+		armProfile.start();
 //		new PowerLogger().start();
 		
     	// check if the shooter is at home (cocked) position, if not disable it until the zero'ing process is run
@@ -220,27 +221,15 @@ public class PuncherArm {
 		if (winderThread != null) winderThread.abortSequence();
 	}
 
-	//Basic method for setting the arm rotator motor to spin
-	public void raiseArm() {
-
-	}
-	
-	public void lowerArm() {
-		
-	}
-	
-	public void stopArm() {
-		
-	}
-	
 	// positive degToRotate lowers the arm
 	// negative degToRotate raises the arm
 	public void rotateArmXDegrees(double degToRotate) {
 		double direction = (degToRotate) / Math.abs(degToRotate);
 		double rotations = ((350.0 * degToRotate) / 360.0);
 		double maxSpeed = direction * armRotatorMaxSpeed;
-		armProfile.setMotionProfile(new SRXProfile(maxSpeed, armRotator.getPosition(), rotations, 250, 250, 10));
-		armProfile.startMotionProfile();
+//		armProfile.setMotionProfile(new SRXProfile(maxSpeed, armRotator.getPosition(), rotations, 250, 250, 10));
+//		armProfile.startMotionProfile();
+		armProfile.pushAndStartMP(new SRXProfile(maxSpeed, armRotator.getPosition(), rotations, 250, 250, 10));
 		System.out.println("Arm command: " + degToRotate);
 	}
 	
@@ -270,32 +259,42 @@ public class PuncherArm {
 		santaClaw.set(jubbs);
 	}
 	
-	public void process() {
+	public void checkArmEncoderPresent() {
 		if (armRotator.isSensorPresent(FeedbackDevice.CtreMagEncoder_Relative) 
 										!= CANTalon.FeedbackDeviceStatus.FeedbackStatusPresent) {
 			resetArm();
+			armEnabled = false;
 		} 
-		armProfile.control();
-		armRotator.set(armProfile.getSetValue().value);
+//		armProfile.control();
+//		armRotator.set(armProfile.getSetValue().value);
 	}
 	
 	public void resetArm() {
 //	    armRotator.changeControlMode(TalonControlMode.PercentVbus);
 //	    armRotator.setPosition(0);
-	    armProfile.reset();
-	    armRotator.set(armProfile.getSetValue().value);
+//	    armProfile.reset();
+//	    armRotator.set(armProfile.getSetValue().value);
+		armProfile.interruptMP();
 	}
 	
-	public boolean isShooterEnabled() { //for shooterEnabled field
+	public boolean isShooterEnabled() { 	//for shooterEnabled field
 		return shooterEnabled;
 	}
 	
-	public boolean isShooterCocked() { //for photo-eye (false when it sees pickup)
-		return shooterCocked.get();
+	public boolean isShooterCocked() { 		//for photo-eye (false when it sees pickup)
+		return !shooterCocked.get();		// the photoeye reads false when the shooter is cocked, so reverse
 	}
 
 	public boolean getArmLimiter() {	// for photo-eye at arm down position (false when at down position)
 		return armLimiter.get();
+	}
+	
+	public boolean isArmEnabled() {		
+		return armEnabled;
+	}
+	
+	public boolean isArmDown() {		// photo-eye reads false when it sees the arm in it's fully
+		return !armLimiter.get();		// lowered position
 	}
 	
 	public void executeWinderHomingSequence(){

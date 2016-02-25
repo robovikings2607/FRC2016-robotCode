@@ -66,7 +66,7 @@ public class Robot extends IterativeRobot {
     	
     	arm.stopWindingSequence();    	
     	arm.resetArm();
-    	arm.process();
+    	arm.checkArmEncoderPresent();
     	if(++counter >= 50){
     		System.out.println( "ShooterEnabled: " + arm.isShooterEnabled() + "  Shooter Eye: " + arm.isShooterCocked() + " Arm Eye: " + arm.getArmLimiter());
     		System.out.println("OPAD POV: " + oController.getPOV(0));
@@ -115,8 +115,8 @@ public class Robot extends IterativeRobot {
     	//Controlling the claw (open or close)
     	arm.toggleClaw(oController.getToggleButton(RobovikingStick.xBoxButtonB));
     	
-    	//Controlling the arm - process the MP driver   	
-    	arm.process();
+    	//Controlling the arm - check the position encoder is present and interrupt MP if not   	
+    	arm.checkArmEncoderPresent();
 
     	if(!armInTestFlag){
     		
@@ -188,7 +188,7 @@ public class Robot extends IterativeRobot {
     	if(oController.getRawButton(RobovikingStick.xBoxLeftBumper)) {  // drive plunger forward (loosen)
     		arm.winderManualRun(.6);
     	}
-    	else if(oController.getRawButton(RobovikingStick.xBoxRightBumper) && arm.isShooterCocked()) {  // drive plunger back (tighten)
+    	else if(oController.getRawButton(RobovikingStick.xBoxRightBumper) && !arm.isShooterCocked()) {  // drive plunger back (tighten)
     		arm.winderManualRun(-.6);
     	}
     	else {
