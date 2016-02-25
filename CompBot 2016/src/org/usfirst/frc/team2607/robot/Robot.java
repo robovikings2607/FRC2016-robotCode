@@ -31,7 +31,7 @@ public class Robot extends IterativeRobot {
 	AutonomousEngine autoEngine;
 	
 	private double moveVal , rotateVal ;
-	private boolean controlSet , armInTestFlag, armOneShot;
+	private boolean armInTestFlag, armOneShot;
 
 	
 	/**
@@ -50,7 +50,6 @@ public class Robot extends IterativeRobot {
     	dController = new RobovikingStick(Constants.dControllerPort);
     	oController = new RobovikingStick(Constants.oControllerPort);
     	
-    	controlSet = false;
     	armInTestFlag = false;
     	autoEngine = new AutonomousEngine(rDrive, arm, shifter);  	    	
     }
@@ -84,31 +83,29 @@ public class Robot extends IterativeRobot {
     	// Driving!
     	shifter.set(!dController.getToggleButton(RobovikingStick.xBoxButtonRightStick));
     	rDrive.arcadeDrive(moveVal, rotateVal);
-    	
-    	if(oController.getRawButton(RobovikingStick.xBoxButtonLeftStick)){
-    		controlSet = true;
-    	} else {
-    		controlSet = false;
-    	}
-    
+    	   
     	//Shooting controls
     	if(oController.getTriggerPressed(RobovikingStick.xBoxRightTrigger) && arm.isShooterEnabled()) {  // right trigger = axis 3
-//    		arm.shoot();
     		arm.executeShootAndReloadSequence();
     	}
     	else if(oController.getTriggerPressed(RobovikingStick.xBoxLeftTrigger)) {  // left trigger = axis 2
     		arm.lock();
     	}
     	
+    	// Homing sequence for shooter
     	if (oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonStart) && !arm.isShooterEnabled()) {
     		arm.executeWinderHomingSequence();
     	}
+    	// abort the homing sequence if you release the start button while it's running
+    	if (oController.getButtonReleasedOneShot(RobovikingStick.xBoxButtonStart) && !arm.isShooterEnabled()) {
+    		arm.stopWindingSequence();
+    	}
     	
     	//Controlling the rollers
-    	if(oController.getRawButton(RobovikingStick.xBoxRightBumper) && !controlSet) {
+    	if(oController.getRawButton(RobovikingStick.xBoxRightBumper)) {
     		arm.rockAndRoll(-1.0);
     	}
-    	else if(oController.getRawButton(RobovikingStick.xBoxLeftBumper) && !controlSet) {
+    	else if(oController.getRawButton(RobovikingStick.xBoxLeftBumper)) {
     		arm.rockAndRoll(1.0);
     	}
     	else {
@@ -118,29 +115,12 @@ public class Robot extends IterativeRobot {
     	//Controlling the claw (open or close)
     	arm.toggleClaw(oController.getToggleButton(RobovikingStick.xBoxButtonB));
     	
-    	//Controlling the arm    	
-    	//if (!controlSet) arm.resetArm();
+    	//Controlling the arm - process the MP driver   	
     	arm.process();
-/*    	
-    	// raise the arm 5 degrees each time xBox Button Y is pressed while holding down left stick
-    	// lower the arm 5 degrees each time xBox Button A is pressed while holding down left stick
-    	if(oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonY) && controlSet) {
-    		arm.rotateArmXDegrees(-5.0); //(new SRXProfile(-18, -4.861, 250, 250, 10));
-    	}
-    	else if(oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonA) && controlSet) {
-    		arm.rotateArmXDegrees(5.0); // new SRXProfile(18, 4.861, 250, 250, 10));
-    	}
-*/
 
     	if(!armInTestFlag){
-/*
-    		if (oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonY) && !arm.getArmLimiter() && controlSet) {
-	    		arm.rotateArmXDegrees(-47);
-	    	}
-	    	if(oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonA) && arm.getArmLimiter() && controlSet) {
-	    		arm.rotateArmXDegrees(47);
-	    	}
-*/			switch (oController.getPOV(0)) {
+    		
+    		switch (oController.getPOV(0)) {
 				case 0:
 					if (!armOneShot && !arm.getArmLimiter()) arm.rotateArmXDegrees(-47);
 					armOneShot = true;
@@ -154,9 +134,8 @@ public class Robot extends IterativeRobot {
 					armOneShot= false;
 					break;
 			}
+    		
     	}
-    	
-    	
     	
     	if(++counter >= 50){
     		System.out.println( "ShooterEnabled: " + arm.isShooterEnabled() + "  Shooter Eye: " + arm.isShooterCocked() + " Arm Eye: " + arm.getArmLimiter());

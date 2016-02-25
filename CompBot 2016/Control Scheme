@@ -12,6 +12,11 @@ Operator Controls follow MikeyBear's Dream Control Scheme
 [DONE]	Left and Right Bumpers - Rollers in and out
 [DONE]  Up and down on D-Pad - move arm up and down
 
+		Start button:  press and hold to execute shooter homing procedure....
+			- needs to be run if robot booted with shooter not fully cocked
+			- only runs if shooter's not enabled
+			- if you release the start button before the shooter reaches home, it'll abort and you have to re-run
+			
 Maintenance Controls (Test Mode)
 
 	Right Bumper (6) - tighten winder (motor spins reverse/negative voltage; encoder position decreases)
@@ -35,15 +40,24 @@ TODO:
 		clear it, before any other profiels will run
 		- check with Omar on expected behavior
 
-	- tested and clearing faults;  JNI methods not implemented for reading SRX faults so robot code
+	- tested setting and clearing faults;  JNI methods not implemented for reading SRX faults so robot code
 	crashes.  Therefore can't use these, and will have to eliminate the forward soft limit eventually
-	- will need to try using just velocity PID (with feedforward only) or VBUS with low command 
-	to move to 0 position
+	- will need to try using just VBUS with low command	to move to 0 position
+
+	UPDATE:
+		- implemented ArmHomingThread, need to decide how to fire it (the oContoller back button?)
+			- only fire if arm control is disabled, obviously
 	 
+2) Plan and code autonomous routine for HH (low bar, turn, shoot)
+	- on-the-fly profile generation and execution now works for the drive train, however generation is 
+	time-consuming, and just controlling the wheel velocities doesn't give accurate enough travel
+	- need to:
+		- incorporate execution of profiles generated & serialized offline
+		- incorporate and tune position PID with Kv feed-forward (RobovikingModPIDController)
+			- profiles will all be relative to where we start, so just need to reset drive encoder positions
+			at start of profile
 
-2) Add TCP code (or user network tables) for data exchange with vision app
-
-3) Plan and code autonomous routine for HH (low bar, turn, shoot)
+3) Add TCP code (or user network tables) for data exchange with vision app
 
 4) (?) add slow speed for rollers so centering the ball is easier (just a small "tap" outwards of the roller) (?)
 
@@ -53,16 +67,15 @@ proper procedure to wait until the Talon reports it's MPE state as disabled befo
 	- with driver as a thread we don't have to call the driver control() (arm.process()) from teleopPeriodic 
 	(or autonomousPeriodic)
 
-6) add PDP logger/monitor
-	- drive train?
+6) add power logger/monitor to drive train
 
-7) ? check for winder stall as a protection against over driving when moving up to grab plunger?
+7) update winder logger to record process step, power, encoder, etc to use to diagnose failure and see if we can
+detect based on current draw when it's pushing the plunger (see below)
+
+8) ? check for winder stall as a protection against over driving when moving up to grab plunger?
 	- stall is probably too late actually....check current being drawn normally, and watch for spike which would
 	indicate it's started pushing the plunger up?
 	- check encoder position during movement for consistency? (i.e. position delta should stay pretty consistent)
-
-8) drive train position PID tuning
-	- separate project for this to keep things simple
 
 	 
 Arm Positioning:
@@ -80,7 +93,32 @@ Arm Positioning:
 	350 cim revs equates to 360deg of arm travel:  i.e. deg/rev = 360/350
 	so, to travel Xdeg, number of revs required is ((350 * Xdeg) / 360)
 
-	given that forward motor travel rotates arm towards front, measure like a protractor:  
+	let currentArmPos = rotations up from 0 (bottom);  is therefore always <= 0
+		- remember, running motor in reverse raises the arm, forward lowers the arm
+
+	if we have a set of known positions (in # of negative rotations), we
+	can generate a profile to take us from current position to selected target
+	- e.g. start at 0, rotate to position -47 (move arm up)
+		- total distance is -47 (-(current - target))
+	
+	- start at position -47, rotate to position -20 (move arm down)
+		- total distance is 27 = (-(current - target)) 
+		= (-(-47 -(-20))) 
+		= -(-47 + 20) 
+		= -(-27)
+		= 27
+		
+	- start at position -20, rotate to position -47 (move arm up)
+		= -(-20 -(-47))
+		= -(-20 + 47)
+		= -(27)
+
+	arm start-up:
+		- if photoeye is true, that means the arm is not fully down;  arm position control needs to stay disabled
+		
+
+
+	an example for converting from a vision angle: given that forward motor travel rotates arm towards front, measure like a protractor:  
 		Consider 90deg as straight up, 180 as flat pointing out the front of the robot, and 0 as flat pointing out the rear
 		of the robot 	
 		Have vision targeting report target angle between 90 and 180;  e.g. subtract triangulated aim angle from 180
@@ -94,8 +132,17 @@ Arm Positioning:
 		current angle is 110, target angle is 70deg (70deg elevation pointing out back of robot)
 			travelDegrees = 70 - 110 = -40deg  
 	
-	can't use soft limits in Talon for protection since position is relative and is reset on each profile
-		see about detecting stall to protect against lowering too far (hitting frame / floor)
+	soft limits in Talon don't provide for reliable protection when used with MPE:
+		- if position is relative and is reset on each profile, obviously the limits would never be
+		triggered
+		- if using absolute position and not resetting on each profile, the MPE seems to go wonky 
+		when a limit is tripped
+			- with limit fault tripped, the next profile in the opposite direction doesn't run; need
+			to send it twice
+			- there's no way in Java to poll the fault, the WPI methods currently return JNI exceptions
+			which crashes the robot code
+
+	see about detecting stall to protect against lowering too far (hitting frame / floor)
 		
 	42 degrees is the optimal angle for shooting into the high goal from the edge of the outer works
 	

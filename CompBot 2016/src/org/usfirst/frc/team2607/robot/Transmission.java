@@ -47,7 +47,10 @@ public class Transmission implements SpeedController {
 		motor3 = new CANTalon(deviceID[2]);
 
 /*		Commenting this out, as follower mode exhibits wierd behavior when used with PID Controller and/or test mode.
- * 		Need to diagnose fully in WPILib
+ * 		Need to diagnose fully in WPILib - don't know yet whether it's the PID Controller or test mode 
+ * 		Specifically, the behavior is that motors 1&3 get switched out of follower mode, so only motor2 drives
+ *		the reverseOutput also no longer takes effect
+ *
 		motor3.changeControlMode(TalonControlMode.Follower);
 		motor3.set(deviceID[1]);
 		motor1.changeControlMode(TalonControlMode.Follower);

@@ -103,7 +103,6 @@ public class RobovikingStick extends Joystick {
 	 public boolean getTriggerPressed(int axisNumber){
 		 double threshold = 0.7;
 		 boolean retValue = false;
-//		 int axisNumber = 5 - triggerNumber;
 		 
 		 if(this.getRawAxis(axisNumber) > threshold) retValue = true;
 		 

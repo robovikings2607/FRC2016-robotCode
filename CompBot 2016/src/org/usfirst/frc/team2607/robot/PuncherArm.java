@@ -16,10 +16,9 @@ public class PuncherArm {
 	private SRXProfileDriver armProfile;
 	private Solenoid punchLock , santaClaw;
 	private DigitalInput armLimiter , shooterCocked;
-	private double armDegreesFromStart;
 	private final double armRotatorMaxSpeed = 18.0;  // cim rotations per second, for motion profiles
 	private AutoWinder winderThread;
-	private boolean shooterEnabled;
+	private boolean shooterEnabled, armEnabled;
 	
 	private class AutoWinder extends Thread {
 
@@ -31,11 +30,8 @@ public class PuncherArm {
 			while (true) {
 				try {
 					switch (step) {
-						case 0: 
-							punchWinder.setPosition(0);
-							sleepTime = 100; 
-							break;
 						case 1:			// starting from the cocked position...
+							punchWinder.setPosition(0);
 							shoot();	// release lock
 							sleepTime = 250;
 							step += 1;
@@ -47,15 +43,15 @@ public class PuncherArm {
 							break;
 						case 3: 
 							punchWinder.set(0); // stop moving
+							lock();				// close the lock
 							punchWinder.setPosition(0);
-							lock();				// close the lock 
 							sleepTime = 250;	// wait .25 secs
 							step += 1;
 							break;
 						case 4: 
 							punchWinder.set(-1.0);	// draw back
 							sleepTime = 10;
-							if (punchWinder.getPosition() <= -100 || !shooterCocked.get()) step += 1;
+							if (punchWinder.getPosition() <= -100 || !shooterCocked.get()) step += 1; 
 							break;
 						case 5:
 							punchWinder.set(0);		// stop, sequence complete
@@ -68,7 +64,6 @@ public class PuncherArm {
 							sleepTime = 10;
 							punchWinder.setPosition(0);
 							punchWinder.set(-.3);
-							System.out.println("homing, pos: " + punchWinder.getPosition());
 							if (!shooterCocked.get() || punchWinder.getPosition() <= -100) step += 1;
 							break;
 						case 11:
@@ -96,10 +91,13 @@ public class PuncherArm {
 			if (step == 0 && !shooterEnabled) step = 10;
 		}
 		
-		public void stopSequence() {
+		public void abortSequence() {
+			if (step != 0) {
+				System.out.println("Aborting winder sequence from step " + step + ", shooterEnabled: " + shooterEnabled);
+				step = 0;
+			}
 			punchWinder.set(0);
-			step = 0;
-		}
+		}	
 	}
 	
 	private class PowerLogger extends Thread {
@@ -121,7 +119,7 @@ public class PuncherArm {
 						armRotator.getOutputCurrent());
 					log.flush();
 				}
-				try {Thread.sleep(10);} catch (Exception e) {}
+				try {Thread.sleep(40);} catch (Exception e) {}
 			}
 		}
 
@@ -130,8 +128,33 @@ public class PuncherArm {
 			try {
 				String s = "/home/lvuser/PuncherArm." + System.currentTimeMillis() + ".csv";
 				log = new PrintWriter(new File(s));
-				log.println("Time,Enabled?,Pos,Vel,VIn,VOut,AmpOut");
+				log.println("Time,Mode,Pos,Vel,VIn,VOut,AmpOut");
 			} catch (Exception e) { System.out.println("Can't start logging"); log = null;}
+		}
+	}
+	
+	
+	private class ArmHomingThread extends Thread {
+		// this thread can be started on operator command 
+		// when the arm needs to be homed (armEnabled == false)
+		//		it's intended to be run anonymously (e.g. new ArmHomingThread().start()) since it just runs and exits
+		@Override
+		public void run() {				
+			armRotator.changeControlMode(TalonControlMode.PercentVbus); 
+			armRotator.setPosition(0);
+			armRotator.set(.1);
+			while (armLimiter.get() && armRotator.getSpeed() > 0) {
+				try { Thread.sleep(10);} catch (Exception e) {}
+			} 
+			armRotator.set(0);
+			if (armLimiter.get()) {
+				System.out.println("WARNING!  Arm homing sequence aborted, arm should be moving but encoder isn't moving");
+				System.out.println("Leaving arm control disabled");
+			} else {
+				armRotator.setPosition(0);
+	    		armRotator.changeControlMode(TalonControlMode.MotionProfile);
+	    		armEnabled = true;
+			}
 		}
 	}
 	
@@ -148,9 +171,10 @@ public class PuncherArm {
 		shooterCocked = new DigitalInput(Constants.shooterCocked);
 
 		shooterEnabled = !shooterCocked.get();
+		armEnabled = !armLimiter.get();
 		winderThread = new AutoWinder();
 		winderThread.start();
-	
+
 		punchLock = new Solenoid(1,Constants.puncherLock);
 		santaClaw = new Solenoid(1,Constants.clawOpener);
 			
@@ -159,22 +183,22 @@ public class PuncherArm {
 		punchWinder.reverseSensor(true);
 		
 		armRotator.setFeedbackDevice(FeedbackDevice.CtreMagEncoder_Relative);
-		armRotator.changeControlMode(TalonControlMode.MotionProfile);
     	armRotator.reverseSensor(true);
-    	armRotator.setProfile(0);
-    	armRotator.setPosition(0);
-		armRotator.setForwardSoftLimit(0);
-		armRotator.enableForwardSoftLimit(true);
 		armRotator.setReverseSoftLimit(-82.6);
 		//armRotator.setReverseSoftLimit(-15);
 		armRotator.enableReverseSoftLimit(true);
+    	armRotator.setProfile(0);
     	armRotator.setF(0.003);
     	armRotator.setP(.03);
     	armRotator.setI(0.0001);
     	armRotator.setD(0);
     	armRotator.enableBrakeMode(true);
     	
-    	armDegreesFromStart = 0.0;			// saves the manual movements of the arm
+    	if (armEnabled) {
+    		armRotator.changeControlMode(TalonControlMode.MotionProfile);
+    		armRotator.setPosition(0);
+    	}
+    	
 	}
 	
 	public void lock() {
@@ -193,7 +217,7 @@ public class PuncherArm {
 	}
 
 	public void stopWindingSequence() {
-		if (winderThread != null) winderThread.stopSequence();
+		if (winderThread != null) winderThread.abortSequence();
 	}
 
 	//Basic method for setting the arm rotator motor to spin
@@ -217,14 +241,16 @@ public class PuncherArm {
 		double maxSpeed = direction * armRotatorMaxSpeed;
 		armProfile.setMotionProfile(new SRXProfile(maxSpeed, armRotator.getPosition(), rotations, 250, 250, 10));
 		armProfile.startMotionProfile();
-		armDegreesFromStart += degToRotate;
-		System.out.println("Arm command: " + degToRotate + ", total from start pos: " + armDegreesFromStart);
+		System.out.println("Arm command: " + degToRotate);
 	}
 	
 	// move arm to an absolute encoder position (# of turns from 0)
 	// will only work if arm is "homed" to a known 0 position 
 	// assume this home 0 = fully lowered;  which means absolute position must always be < 0
 	//		- negative/reverse travel raises arm;  positive/forward travel lowers arm
+	// update the below to check if a profile is currently running, and safely interrupt it via the new driver if it is,
+	// before sending a new profile
+	
 /*
 	public void rotateArmToPosition(double targetPosition) {
 		//		- distance to travel is (-(currentPos - targetPos))
@@ -285,7 +311,4 @@ public class PuncherArm {
 		winderThread.startFromCockedPosition();
 	}
 	
-	public void stopSequence() {
-		winderThread.stopSequence();
-	}
 }
