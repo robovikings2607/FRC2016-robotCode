@@ -23,10 +23,13 @@ Driver Controls
 	
 Operator Controls follow MikeyBear's Dream Control Scheme 
 
-[DONE]	Shoot and Lock Piston and open the claw - Right Trigger
-[DONE]	Left and Right Bumpers - Rollers in and out
-[DONE]  Up and down on D-Pad - move arm up and down
-
+	Shoot and re-cock shooter - Right Trigger
+		- controller will rumble if you try to shoot and claw isn't opened
+	Lock the shooter		  - Left Trigger
+	Left and Right Bumpers - Rollers in and out
+  	Up and down on D-Pad - move arm up and down
+	Toggle Claw open/closed	- Button B
+	
 		Start button:  press and hold to execute shooter homing procedure....
 			- needs to be run if robot booted with shooter not fully cocked
 			- only runs if shooter's not enabled

@@ -8,6 +8,7 @@ import com.team254.lib.trajectory.TrajectoryGenerator;
 import com.team254.lib.trajectory.WaypointSequence;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.Solenoid;
 
@@ -86,9 +87,18 @@ public class Robot extends IterativeRobot {
     	   
     	//Shooting controls
     	if(oController.getTriggerPressed(RobovikingStick.xBoxRightTrigger) && arm.isShooterEnabled()) {  // right trigger = axis 3
-    		arm.executeShootAndReloadSequence();
+    		if (!arm.isClawOpen()) {
+    			oController.setRumble(Joystick.RumbleType.kLeftRumble, 1);
+    			oController.setRumble(Joystick.RumbleType.kRightRumble, 1);
+    		} else {
+    			arm.executeShootAndReloadSequence();		// go ahead and shoot	
+    		}    		
+    	} else {
+    		oController.setRumble(Joystick.RumbleType.kLeftRumble, 0);
+    		oController.setRumble(Joystick.RumbleType.kRightRumble, 0);
     	}
-    	else if(oController.getTriggerPressed(RobovikingStick.xBoxLeftTrigger)) {  // left trigger = axis 2
+    	
+    	if(oController.getTriggerPressed(RobovikingStick.xBoxLeftTrigger)) {  // left trigger = axis 2
     		arm.lock();
     	}
     	

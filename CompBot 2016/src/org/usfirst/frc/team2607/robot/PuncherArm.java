@@ -259,6 +259,10 @@ public class PuncherArm {
 		santaClaw.set(jubbs);
 	}
 	
+	public boolean isClawOpen() {
+		return !santaClaw.get();
+	}
+	
 	public void checkArmEncoderPresent() {
 		if (armRotator.isSensorPresent(FeedbackDevice.CtreMagEncoder_Relative) 
 										!= CANTalon.FeedbackDeviceStatus.FeedbackStatusPresent) {
@@ -306,7 +310,7 @@ public class PuncherArm {
 	}
 	
 	public void executeShootAndReloadSequence(){
-		santaClaw.set(false);						// open the pickup claw
+//		santaClaw.set(false);						// open the pickup claw
 		winderThread.startFromCockedPosition();
 	}
 	
