@@ -23,13 +23,16 @@ public class RobovikingModPIDController implements LiveWindowSendable {
   private double m_P; // factor for "proportional" control
   private double m_I; // factor for "integral" control
   private double m_D; // factor for "derivative" control
-  private double m_F; // factor for feedforward term
+  private double m_V; // factor for velocity feedforward term
+  private double m_A; // factor for acceleration feedforward term
   private double m_maximumOutput = 1.0; // |maximum output|
   private double m_minimumOutput = -1.0; // |minimum output|
   private double m_maximumInput_pos = 0.0; // maximum input - limit pos setpoint to this
   private double m_minimumInput_pos = 0.0; // minimum input - limit pos setpoint to this
   private double m_maximumInput_vel = 0.0; // maximum input - limit vel setpoint to this
   private double m_minimumInput_vel = 0.0; // minimum input - limit vel setpoint to this
+  private double m_maximumInput_acc = 0.0; // maximum input - limit vel setpoint to this
+  private double m_minimumInput_acc = 0.0; // minimum input - limit vel setpoint to this
   private boolean m_continuous = false; // do the endpoints wrap around? eg.
                                         // Absolute encoder
   private boolean m_enabled = false; // is the pid controller enabled
@@ -44,6 +47,7 @@ public class RobovikingModPIDController implements LiveWindowSendable {
   private double m_bufTotal = 0.0;
   private double m_setpoint_pos = 0.0;
   private double m_setpoint_vel = 0.0;
+  private double m_setpoint_acc = 0.0;
   private double m_prevSetpoint_pos = 0.0;
   private double m_error = 0.0;
   private double m_result = 0.0;
@@ -149,7 +153,7 @@ public class RobovikingModPIDController implements LiveWindowSendable {
     m_P = Kp;
     m_I = Ki;
     m_D = Kd;
-    m_F = Kf;
+    m_V = Kf;
 
     m_pidInput = source;
     m_pidOutput = output;
@@ -209,6 +213,23 @@ public class RobovikingModPIDController implements LiveWindowSendable {
   public RobovikingModPIDController(double Kp, double Ki, double Kd, double Kf, PIDSource source,
       PIDOutput output) {
     this(Kp, Ki, Kd, Kf, source, output, kDefaultPeriod);
+  }
+  
+  /**
+   * Allocate a PID object with the given constants for P, I, D, using a 50ms
+   * period.
+   *$
+   * @param Kp the proportional coefficient
+   * @param Ki the integral coefficient
+   * @param Kd the derivative coefficient
+   * @param Kf the feed forward term
+   * @param source The PIDSource object that is used to get values
+   * @param output The PIDOutput object that is set to the output percentage
+   */
+  public RobovikingModPIDController(double Kp, double Ki, double Kd, double Kf, double ka, PIDSource source,
+      PIDOutput output) {
+    this(Kp, Ki, Kd, Kf, source, output, kDefaultPeriod);
+    m_A = ka;
   }
 
   /**
@@ -338,7 +359,7 @@ public class RobovikingModPIDController implements LiveWindowSendable {
    * the default period in this class's constructor).
    */
   protected double calculateFeedForward() {
-      return m_F * m_setpoint_vel;
+      return m_V * m_setpoint_vel + m_A * m_setpoint_acc;
   }
 
   /**
@@ -374,7 +395,7 @@ public class RobovikingModPIDController implements LiveWindowSendable {
     m_P = p;
     m_I = i;
     m_D = d;
-    m_F = f;
+    m_V = f;
 
     if (table != null) {
       table.putNumber("p", p);
@@ -417,7 +438,7 @@ public class RobovikingModPIDController implements LiveWindowSendable {
    * @return feed forward coefficient
    */
   public synchronized double getF() {
-    return m_F;
+    return m_V;
   }
 
   /**
@@ -463,7 +484,7 @@ public class RobovikingModPIDController implements LiveWindowSendable {
     }
     m_minimumInput_pos = minimumInput;
     m_maximumInput_pos = maximumInput;
-    setSetpoint(m_setpoint_pos, m_setpoint_vel);
+    setSetpoint(m_setpoint_pos, m_setpoint_vel, m_setpoint_acc);
   }
   
   /**
@@ -478,7 +499,22 @@ public class RobovikingModPIDController implements LiveWindowSendable {
     }
     m_minimumInput_vel = minimumInput;
     m_maximumInput_vel = maximumInput;
-    setSetpoint(m_setpoint_pos, m_setpoint_vel);
+    setSetpoint(m_setpoint_pos, m_setpoint_vel, m_setpoint_acc);
+  }
+  
+  /**
+   * Sets the maximum and minimum values expected from the input and setpoint.
+   *
+   * @param minimumInput the minimum value expected from the input
+   * @param maximumInput the maximum value expected from the input
+   */
+  public synchronized void setAccelerationInputRange(double minimumInput, double maximumInput) {
+    if (minimumInput > maximumInput) {
+      throw new BoundaryException("Lower bound is greater than upper bound");
+    }
+    m_minimumInput_acc = minimumInput;
+    m_maximumInput_acc = maximumInput;
+    setSetpoint(m_setpoint_pos, m_setpoint_vel, m_setpoint_acc);
   }
 
   /**
@@ -501,7 +537,7 @@ public class RobovikingModPIDController implements LiveWindowSendable {
    *$
    * @param setpoint_pos the desired setpoint
    */
-  public synchronized void setSetpoint(double setpoint_pos, double setpoint_vel) {
+  public synchronized void setSetpoint(double setpoint_pos, double setpoint_vel, double setpoint_acc) {
     if (m_maximumInput_pos > m_minimumInput_pos) {
       if (setpoint_pos > m_maximumInput_pos) {
         m_setpoint_pos = m_maximumInput_pos;
@@ -526,6 +562,18 @@ public class RobovikingModPIDController implements LiveWindowSendable {
         m_setpoint_vel = setpoint_vel;
       }
 
+    if (m_maximumInput_acc > m_minimumInput_acc) {
+        if (setpoint_acc > m_maximumInput_acc) {
+          m_setpoint_acc = m_maximumInput_acc;
+        } else if (setpoint_acc < m_minimumInput_acc) {
+          m_setpoint_acc = m_minimumInput_acc;
+        } else {
+          m_setpoint_acc = setpoint_acc;
+        }
+      } else {
+        m_setpoint_acc = setpoint_acc;
+      }
+    
     m_buf.clear();
 
     if (table != null)
