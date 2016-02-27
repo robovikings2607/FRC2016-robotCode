@@ -7,6 +7,8 @@ Testing to do:
 	just finish original profile)
 3) test arm homing procedure 
 	a) boot up with arm up; verify can't move arm in teleop;  verify homing works
+			- initially, stop homing early by triggering switch;  after confirming that works, reboot with 
+			arm up and run full homing procedure
 	b) after homing verify arm positioning works
 4) position PID tuning for drive train
 	a) run from autonomous rather than test to keep it simple and verify no unexpected wierdness	

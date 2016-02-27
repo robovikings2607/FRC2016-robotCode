@@ -1,6 +1,9 @@
 package org.usfirst.frc.team2607.robot;
 
+import org.usfirst.frc.team2607.robot.SRXProfileDriver.PeriodicRunnable;
+
 import edu.wpi.first.wpilibj.CANTalon;
+import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.CANTalon.TalonControlMode;
 
 // this will consist of 2 threads
@@ -18,21 +21,14 @@ public class RobovikingSRXProfileDriver extends Thread {
 	private SRXProfile motionProfile;		// the profile we'll push to the Talon and execute
 	private CANTalon talonSRX;				// the Talon we're driving
 	private int state;						// the state machine control variable
-		
+	Notifier notifier = new Notifier(new PeriodicRunnable());
+	
 	private CANTalon.MotionProfileStatus talonMPStatus = new CANTalon.MotionProfileStatus();
 
-	private class PeriodicDriver extends Thread {
-		// for now assume this will just run all the time, see what Omar responds as to whether
-		// we should start/stop based on entering/leaving MP mode
-		@Override
-		public void run() {
-			while (true) {
-				talonSRX.processMotionProfileBuffer();
-				try { Thread.sleep(5); } catch (Exception e) {}
-			}			
-		}	
+	class PeriodicRunnable implements java.lang.Runnable {
+	    public void run() {  talonSRX.processMotionProfileBuffer();    }
 	}
-	
+
 	public RobovikingSRXProfileDriver(CANTalon t) {
 		talonSRX = t;
 		motionProfile = null;
@@ -82,7 +78,7 @@ public class RobovikingSRXProfileDriver extends Thread {
 	@Override
 	public void run() {
 		talonSRX.changeMotionControlFramePeriod(5);
-		new PeriodicDriver().start();
+		notifier.startPeriodic(.005);
 		while (true) {
 			process();
 			try { Thread.sleep(20);} catch (Exception e) {}
