@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import com.team254.lib.trajectory.Path;
 import com.team254.lib.trajectory.Trajectory;
+import com.team254.lib.trajectory.Trajectory.Segment;
 
 import edu.wpi.first.wpilibj.Notifier;
 
@@ -13,7 +14,7 @@ public class RobovikingDriveTrainProfileDriver {
 	//private PIDController positionPID;
 	private double dtSeconds;
 	private Path path;
-	private ArrayList<Double> leftVelPts, rightVelPts;
+	private ArrayList<Segment> leftVelPts, rightVelPts;
 	private int numPoints;
 	private Trajectory lt, rt;
 	private boolean running = false, done = false;
@@ -26,7 +27,7 @@ public class RobovikingDriveTrainProfileDriver {
 		public PeriodicRunnable() {
 			firstTime = true;
 		}
-		
+
 		public void run() {
 	    	if (firstTime) {
 	    		firstTime = false;
@@ -38,39 +39,36 @@ public class RobovikingDriveTrainProfileDriver {
 	    	}
 	    	step = (System.currentTimeMillis() - startTime) / (long)(dtSeconds * 1000);
 	    	try {
-	    		double l = leftVelPts.get((int)step), 
-	    			   r = -rightVelPts.get((int)step);		// the right motors are inverted
-	    		System.out.println("Step: " + step + " left SP: " + l + " right SP: " + r);
-	    		leftMotors.setVelSP(l);
-	    		rightMotors.setVelSP(r);	    		
+	    		leftMotors.setSP(leftVelPts.get((int)step));
+	    		rightMotors.setSP(rightVelPts.get((int)step));
+	    		
 	    	} catch (Exception e) {
 	    		pointExecutor.stop();
 	    		running = false;
 	    		done = true;
-	    		leftMotors.disableVelPID();
-	    		rightMotors.disableVelPID();
+	    		//leftMotors.disableVelPID();
+
 	    	}
 	    }
 	}
 
 	Notifier pointExecutor = new Notifier(new PeriodicRunnable());
 
-	public RobovikingDriveTrainProfileDriver(Transmission leftMotors, Transmission rightMotors, 
-										double dtSeconds, Path path) {
+	public RobovikingDriveTrainProfileDriver(Transmission leftMotors, Transmission rightMotors, Path path) {
 		this.leftMotors = leftMotors;
 		this.rightMotors = rightMotors;
-		this.dtSeconds = dtSeconds;
 		this.path = path;
-		this.leftVelPts = new ArrayList<Double>();
-		this.rightVelPts = new ArrayList<Double>();
+		this.leftVelPts = new ArrayList<Segment>();
+		this.rightVelPts = new ArrayList<Segment>();
 		//store the velocity pts
 		numPoints = path.getLeftWheelTrajectory().getNumSegments();
 		lt = this.path.getLeftWheelTrajectory();
 		rt = this.path.getRightWheelTrajectory();
 		
 		for (int i = 0; i < numPoints; i++) {
-			leftVelPts.add(lt.getSegment(i).vel);
-			rightVelPts.add(rt.getSegment(i).vel);
+			leftVelPts.add(lt.getSegment(i));
+			rightVelPts.add(rt.getSegment(i));
+			if (i==0) dtSeconds = lt.getSegment(i).dt;
 		}
 	}
 

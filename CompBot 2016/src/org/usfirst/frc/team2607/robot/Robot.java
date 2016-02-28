@@ -42,8 +42,8 @@ public class Robot extends IterativeRobot {
     public void robotInit() {
     	
     	shifter = new Solenoid(1,Constants.shifter);
-    	leftMotors = new Transmission(Constants.leftDeviceIDs , true);
-    	rightMotors = new Transmission(Constants.rightDeviceIDs , true);
+    	leftMotors = new Transmission(Constants.leftDeviceIDs , true, RobovikingModPIDController.kTurnLeft, null);
+    	rightMotors = new Transmission(Constants.rightDeviceIDs , true, RobovikingModPIDController.kTurnRight, null);
     	rDrive = new RobotDrive(leftMotors , rightMotors);
     	rDrive.setSafetyEnabled(false);
     	arm = new PuncherArm();
@@ -182,7 +182,7 @@ public class Robot extends IterativeRobot {
         Path path = PathGenerator.makePath(p, config,
             kWheelbaseWidth, "Corn Dogs");
     	
-    	d = new RobovikingDriveTrainProfileDriver(leftMotors, rightMotors, config.dt, path);
+    	d = new RobovikingDriveTrainProfileDriver(leftMotors, rightMotors, path);
     	shifter.set(true);
     }
     
@@ -222,12 +222,13 @@ public class Robot extends IterativeRobot {
     		arm.rotateArmXDegrees(5.0); // new SRXProfile(18, 4.861, 250, 250, 10));
     	}  	  	
     	
-    	// testing of velocity PID on Transmission 
+    	/* // SP is not just a velocity anymore
+    	 * // testing of velocity PID on Transmission 
     	if (dController.getRawButton(RobovikingStick.xBoxButtonY)) {
     		leftMotors.enableVelPID();
-    		leftMotors.setVelSP(4.0);
+    		//leftMotors.setVelSP(4.0);				
     		rightMotors.enableVelPID();
-    		rightMotors.setVelSP(-4.0);			// the right side motors are reversed
+    		//rightMotors.setVelSP(-4.0);			// the right side motors are reversed
     	}  
     	
     	if (dController.getButtonReleasedOneShot(RobovikingStick.xBoxButtonY)){
@@ -235,7 +236,7 @@ public class Robot extends IterativeRobot {
     		rightMotors.disableVelPID();
     		leftMotors.set(0);
     		rightMotors.set(0);
-    	}
+    	}*/
     	
     	if (dController.getButtonPressedOneShot(RobovikingStick.xBoxButtonX)) {
     		d.followPath();
