@@ -35,7 +35,10 @@ public class Constants {
 	public static int
 				dControllerPort = 0	,
 				oControllerPort = 1	;
-	
+
+	// armPositions are in CIM motor rotations, not in arm degrees
+	// rotations = (350.0 * degrees) / 360.0
+	// 0.0 is arm down;  all other positions are negative, since reverse motor drives the arm up
 	public static double[] armPositions = {0.0, -45.69};
 	
 	
