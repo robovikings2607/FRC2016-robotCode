@@ -1,11 +1,23 @@
 
 package org.usfirst.frc.team2607.robot;
 
+import java.io.File;
+import java.io.FileReader;
+import java.util.Scanner;
+
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.handler.DefaultHandler;
+import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.handler.ResourceHandler;
+
 import com.kauailabs.navx.frc.AHRS;
 import com.team254.lib.trajectory.Path;
 import com.team254.lib.trajectory.PathGenerator;
 import com.team254.lib.trajectory.TrajectoryGenerator;
 import com.team254.lib.trajectory.WaypointSequence;
+import com.team254.lib.trajectory.io.TextFileDeserializer;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
@@ -21,6 +33,7 @@ import edu.wpi.first.wpilibj.Solenoid;
  */
 public class Robot extends IterativeRobot {
 	
+
 	Transmission leftMotors , rightMotors ;
 	RobotDrive rDrive ;
 	PuncherArm arm ;
@@ -43,9 +56,12 @@ public class Robot extends IterativeRobot {
     	
     	shifter = new Solenoid(1,Constants.shifter);
     	leftMotors = new Transmission(Constants.leftDeviceIDs , true, RobovikingModPIDController.kTurnLeft, null);
+    	leftMotors.setName("leftMotors");
     	rightMotors = new Transmission(Constants.rightDeviceIDs , true, RobovikingModPIDController.kTurnRight, null);
+    	rightMotors.setName("rightMotors");
     	rDrive = new RobotDrive(leftMotors , rightMotors);
     	rDrive.setSafetyEnabled(false);
+
     	arm = new PuncherArm();
     	System.out.println("I AM CUTE DINOSAUR, HEAR ME RAWR");
     	dController = new RobovikingStick(Constants.dControllerPort);
@@ -53,18 +69,61 @@ public class Robot extends IterativeRobot {
     	
     	armInTestFlag = false;
     	autoEngine = new AutonomousEngine(rDrive, arm, shifter);  	    	
-    }
-    
-    public void autonomousInit() {
     	
+    	// for tuning....webserver to view PID logs
+    	Server server = new Server(5801);
+        ServerConnector connector = new ServerConnector(server);
+        connector.setPort(5801);
+        server.addConnector(connector);
+
+        ResourceHandler resource_handler = new ResourceHandler();
+        resource_handler.setDirectoriesListed(true);
+        resource_handler.setWelcomeFiles(new String[]{ "/home/lvuser/index.html" });
+
+        resource_handler.setResourceBase(".");
+        
+        HandlerList handlers = new HandlerList();
+        handlers.setHandlers(new Handler[] { resource_handler, new DefaultHandler() });
+        server.setHandler(handlers);
+        try {
+			server.start();
+			server.join();
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+    }
+ 
+    public void autonomousInit() {
+    	// NOTE:  must set rightMotors inverted in order to use motion profile, due to the completely messed-up 
+    	// way the WPILib RobotDrive handles opposing sides of the robot drivetrain....again, not that we're complaining
+    	// or anything
+
+    	// will also need to disable the motor PID's after completing profile, since that is now commented out of 
+    	// RobovikingDriveTrainProfileDriver....otherwise, the robot won't drive in teleop under operator control
+
+    	rightMotors.setInverted(true);			/// AAAAARRRRRGHHH!!!!!   WHYYYYYYYYY??????!!!!
+    	Path path = null;
+		try {
+			Scanner trajFile = new Scanner(new FileReader(new File("/home/lvuser/testProfile.txt")));
+			trajFile.useDelimiter("\\Z");
+			String traj = trajFile.next();
+			TextFileDeserializer tfds = new TextFileDeserializer();
+			path = tfds.deserialize(traj);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		RobovikingDriveTrainProfileDriver mp = new RobovikingDriveTrainProfileDriver(leftMotors, rightMotors, path);
+		mp.followPath();
     }
 
     public void autonomousPeriodic() {
     	
+    	
     }
     
     public void disabledPeriodic() {
-    	
     	arm.stopWindingSequence();    	
     	arm.resetArm();
     	arm.checkArmEncoderPresent();
@@ -75,8 +134,27 @@ public class Robot extends IterativeRobot {
     	}
     }
 
+	@Override
+	public void teleopInit() {
+		// NOTE:  must set leftMotors and rightMotors to not-inverted so that RobotDrive works correctly after
+		// running motion profile in autonomous mode
+		//		This is due to the completely messed-up way WPILib currently handles opposing sides of the robot
+		//		drivetrain....not that we're complaining or anything
+		leftMotors.setInverted(false);
+		rightMotors.setInverted(false);
+	}
+    
     int counter = 0;
     public void teleopPeriodic() {
+
+    	if(++counter >= 50){
+    		System.out.println( "Shooter Enabled: " + arm.isShooterEnabled() + "  Shooter Cocked: " + arm.isShooterCocked() 
+    							+ "Shooter Eye: " + arm.getShooterEye());
+    		System.out.println(" Arm Eye: " + arm.getArmLimiter() + " Arm Enabled: " + arm.isArmEnabled()
+    							+ " Arm Down: " + arm.isArmDown());
+    		counter = 0;
+    	}
+
     	
     	moveVal = -( dController.getRawAxisWithDeadzone(RobovikingStick.xBoxLeftStickY) );
     	rotateVal = - (dController.getRawAxisWithDeadzone(RobovikingStick.xBoxRightStickX));
@@ -132,11 +210,11 @@ public class Robot extends IterativeRobot {
     		
     		switch (oController.getPOV(0)) {
 				case 0:
-					if (!armOneShot && !arm.getArmLimiter()) arm.rotateArmXDegrees(-47);
+					if (!armOneShot && arm.isArmDown() && arm.isArmEnabled()) arm.rotateArmXDegrees(-47);
 					armOneShot = true;
 					break;
 				case 180:
-					if (!armOneShot && arm.getArmLimiter()) arm.rotateArmXDegrees(47);
+					if (!armOneShot && !arm.isArmDown() && arm.isArmEnabled()) arm.rotateArmXDegrees(47);
 					armOneShot = true;
 					break;
 				case -1:
@@ -147,15 +225,14 @@ public class Robot extends IterativeRobot {
     		
     	}
     	
-    	if(++counter >= 50){
-    		System.out.println( "ShooterEnabled: " + arm.isShooterEnabled() + "  Shooter Eye: " + arm.isShooterCocked() + " Arm Eye: " + arm.getArmLimiter());
-    		counter = 0;
-    	}
         
     }
+    
+    
+    
 // WIERD TALON SRX BEHAVIORS:
-/* For some reason, the drive Talons would lose master/follower when testing the below.  Could be due either to 
- * something in the PID Controller or Test Mode - need to figure out why this is.
+/* For some reason, the drive Talons would lose master/follower when testing motion profiling in test mode.  
+ * Could be due either to something in the PID Controller or Test Mode - need to figure out why this is.
  * 		- if we start in Teleop, Talons are in master/follower
  * 		- if we move to test and run the PID, only "motor2" (the master) runs...the other two do not follow    
  * As a workaround, updating the Transmission class to just set all three motors directly.
@@ -163,27 +240,9 @@ public class Robot extends IterativeRobot {
  * Also the encoder positions seem to get messed up when switching from Test to Teleop - winder and arm do not work properly
  * even if we just restart code.  Need to power cycle to get normal behavior
  */    
-    private RobovikingDriveTrainProfileDriver d;
+
     public void testInit() {
-    	TrajectoryGenerator.Config config = new TrajectoryGenerator.Config();
-        config.dt = .01;
-        config.max_acc = 8.0;
-        config.max_jerk = 60.0;
-        config.max_vel = 6.0;
-        
-        final double kWheelbaseWidth = 25.25/12;
 
-        WaypointSequence p = new WaypointSequence(10);
-        p.addWaypoint(new WaypointSequence.Waypoint(0, 0, 0));
-        //p.addWaypoint(new WaypointSequence.Waypoint(5, 7.0, 0));
-        p.addWaypoint(new WaypointSequence.Waypoint(7.0, 7.0, Math.PI / 3.0));
-        p.addWaypoint(new WaypointSequence.Waypoint(10.0, 10.0, 0));
-
-        Path path = PathGenerator.makePath(p, config,
-            kWheelbaseWidth, "Corn Dogs");
-    	
-    	d = new RobovikingDriveTrainProfileDriver(leftMotors, rightMotors, path);
-    	shifter.set(true);
     }
     
     public void testPeriodic() {
@@ -238,9 +297,6 @@ public class Robot extends IterativeRobot {
     		rightMotors.set(0);
     	}*/
     	
-    	if (dController.getButtonPressedOneShot(RobovikingStick.xBoxButtonX)) {
-    		d.followPath();
-    	}
     }
     
 }

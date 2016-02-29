@@ -13,7 +13,7 @@ public class RobovikingDriveTrainProfileDriver {
 	private Transmission leftMotors, rightMotors;
 	//private PIDController positionPID;
 	private double dtSeconds;
-	private Path path;
+	//private Path path;
 	private ArrayList<Segment> leftVelPts, rightVelPts;
 	private int numPoints;
 	private Trajectory lt, rt;
@@ -40,14 +40,13 @@ public class RobovikingDriveTrainProfileDriver {
 	    	step = (System.currentTimeMillis() - startTime) / (long)(dtSeconds * 1000);
 	    	try {
 	    		leftMotors.setSP(leftVelPts.get((int)step));
-	    		rightMotors.setSP(rightVelPts.get((int)step));
-	    		
+	    		rightMotors.setSP(rightVelPts.get((int)step));	
 	    	} catch (Exception e) {
 	    		pointExecutor.stop();
 	    		running = false;
 	    		done = true;
 	    		//leftMotors.disableVelPID();
-
+	    		
 	    	}
 	    }
 	}
@@ -57,14 +56,13 @@ public class RobovikingDriveTrainProfileDriver {
 	public RobovikingDriveTrainProfileDriver(Transmission leftMotors, Transmission rightMotors, Path path) {
 		this.leftMotors = leftMotors;
 		this.rightMotors = rightMotors;
-		this.path = path;
+		//this.path = path;
 		this.leftVelPts = new ArrayList<Segment>();
 		this.rightVelPts = new ArrayList<Segment>();
 		//store the velocity pts
 		numPoints = path.getLeftWheelTrajectory().getNumSegments();
-		lt = this.path.getLeftWheelTrajectory();
-		rt = this.path.getRightWheelTrajectory();
-		
+		lt = path.getLeftWheelTrajectory();
+		rt = path.getRightWheelTrajectory();
 		for (int i = 0; i < numPoints; i++) {
 			leftVelPts.add(lt.getSegment(i));
 			rightVelPts.add(rt.getSegment(i));

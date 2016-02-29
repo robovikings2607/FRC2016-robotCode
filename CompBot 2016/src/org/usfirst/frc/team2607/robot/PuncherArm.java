@@ -150,6 +150,7 @@ public class PuncherArm {
 			if (armLimiter.get()) {
 				System.out.println("WARNING!  Arm homing sequence aborted, arm should be moving but encoder isn't moving");
 				System.out.println("Leaving arm control disabled");
+				armEnabled = false;
 			} else {
 				armRotator.setPosition(0);
 	    		armRotator.changeControlMode(TalonControlMode.MotionProfile);
@@ -293,6 +294,10 @@ public class PuncherArm {
 		return armLimiter.get();
 	}
 	
+	public boolean getShooterEye() {
+		return shooterCocked.get();
+	}
+
 	public boolean isArmEnabled() {		
 		return armEnabled;
 	}

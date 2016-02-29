@@ -69,7 +69,9 @@ public class Transmission implements SpeedController {
 		motor3.enableBrakeMode(false);
 		
 		if(encodersFlag) {
-			enc = new Encoder(deviceID[3] , deviceID[4] , false, Encoder.EncodingType.k1X);
+			// NOTE:  Encoder must be reversed for the right-side motors;  the "side" parameter of the 
+			// ctor is false for left, and true for right, so use this as the "reversed" flag on the Encoder ctor
+			enc = new Encoder(deviceID[3] , deviceID[4] , side, Encoder.EncodingType.k1X);
 			enc.setPIDSourceType(PIDSourceType.kDisplacement);
 			enc.reset();
 			enc.setDistancePerPulse(0.00766990393942820614859043794746);	// ((Wheel Di. (in) / 12) * pi) / enc counts
@@ -192,10 +194,10 @@ public class Transmission implements SpeedController {
 				pidLoop.getSetpoint()[1] + "," + enc.getRate() + "\n" +
 				pidLoop.getSetpoint()[3] + "," + gyro.getAngle());
 	}
-
+/*
 	@Override
 	public void stopMotor() {
 		//Must be implemented, for what?
 	}
-
+*/
 }
