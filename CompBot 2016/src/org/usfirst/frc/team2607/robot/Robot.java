@@ -46,6 +46,7 @@ public class Robot extends IterativeRobot {
 	RobovikingStick dController , oController ;
 	
 	AutonomousEngine autoEngine;
+	Thread autoThread = null;
 	
 	private double moveVal , rotateVal ;
 	private boolean armInTestFlag, armOneShot;
@@ -76,7 +77,8 @@ public class Robot extends IterativeRobot {
     	shifter.set(true);    	
     	
     	armInTestFlag = false;
-    	autoEngine = new AutonomousEngine(this);  	    	
+    	autoEngine = new AutonomousEngine(this); 
+    	autoEngine.loadSavedMode();
     	
     	// for tuning....webserver to view PID logs
     	Server server = new Server(5801);
@@ -122,7 +124,9 @@ public class Robot extends IterativeRobot {
 		mp = new RobovikingDriveTrainProfileDriver(leftMotors, rightMotors, path);
 		mp.followPath();*/
     	
-    	
+    	autoThread = new Thread(autoEngine);
+    	autoEngine.setMode(1);
+    	autoThread.start(); //JUST FOR TESTING
     }
 
     public void autonomousPeriodic() {

@@ -32,7 +32,7 @@ public class AutonomousEngine implements Runnable {
 		this.robot = robot;
 		autoTimer = new Timer();
 		step = 0;
-		mode = 0;
+		mode = 1;
 		
 		kidiger = new AutonomousManager(this.robot);
 	}
@@ -48,7 +48,7 @@ public class AutonomousEngine implements Runnable {
 				SmartDashboard.putString("autonMode", "UNKNOWN!!");
 				break;
 		}	*/
-		SmartDashboard.putString("autonMode", "UNKNOWN!!");
+		SmartDashboard.putString("autonMode", kidiger.getModeByIndex(mode).getName());
 	
 	}
 	
@@ -64,7 +64,13 @@ public class AutonomousEngine implements Runnable {
 	}
 	
 	public void selectMode() {
-		if (++mode > 16) mode = 0;
+		if (++mode > 16) mode = 1;
+		saveMode();
+		displayMode();
+	}
+	
+	public void setMode(int i) {
+		mode = i;
 		saveMode();
 		displayMode();
 	}
@@ -88,18 +94,10 @@ public class AutonomousEngine implements Runnable {
 	public void run() {
 		// called by Thread.start();
 		System.out.println("Auto Thread Start");
-			switch (mode) {
-			case 0:
-				// turn off outputs
-				break;
-			case 1:
-				System.out.println("Running Auto 1");
-//				doSomethingInteresting();
-				mode = 0;
-				break;
-
-				default:
-			}
+		
+		System.out.println("Running Mode: " + kidiger.getModeByIndex(mode).getName());
+		kidiger.getModeByIndex(mode).run();
+		
 		System.out.println("Exiting Auto");
 
 	}

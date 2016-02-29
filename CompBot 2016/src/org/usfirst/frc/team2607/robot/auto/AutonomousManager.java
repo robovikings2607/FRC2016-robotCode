@@ -7,6 +7,10 @@ import org.usfirst.frc.team2607.robot.RobovikingDriveTrainProfileDriver;
 
 import com.team254.lib.trajectory.Path;
 
+/**
+ * @author Cerora
+ *
+ */
 public class AutonomousManager {
 	
 	Robot robot;
@@ -15,6 +19,7 @@ public class AutonomousManager {
 	AutonomousManager(Robot robot){
 		this.robot = robot;
 		
+		modes.add(new DoNothingFailsafe());
 		modes.add(new DoNothing());
 		modes.add(new BreachLowBar(robot));
 	}
@@ -30,7 +35,7 @@ public class AutonomousManager {
 		} catch (Exception e) {
 			System.err.println("Mode not found");
 			e.printStackTrace();
-			return new DoNothing();
+			return new DoNothingFailsafe();
 		}
 	}
 	
@@ -40,9 +45,17 @@ public class AutonomousManager {
 		} catch (IndexOutOfBoundsException e){
 			System.err.println("Mode out of array bounds");
 			e.printStackTrace();
-			return new DoNothing();
+			return new DoNothingFailsafe();
 		}
 	}
+	
+	
+	/*
+	 * BEGIN AUTON MODE DECLARATIONS
+	 * 
+	 * You must add the mode to the array once you define its class
+	 */
+	
 
 	public class BreachLowBar extends AutonomousMode {
 
@@ -67,7 +80,6 @@ public class AutonomousManager {
 		
 	}
 	
-	
 	public class DoNothing extends AutonomousMode {
 		
 		DoNothing(){
@@ -76,12 +88,30 @@ public class AutonomousManager {
 
 		@Override
 		public void run() {
-			System.out.println("You told me not to move!");
+			System.out.println("Explicitly told not to move");
 		}
 
 		@Override
 		public String getName() {
 			return "DoNothing";
+		}
+		
+	}
+	
+	public class DoNothingFailsafe extends AutonomousMode {
+		
+		DoNothingFailsafe(){
+			
+		}
+
+		@Override
+		public void run() {
+			System.out.println("This shouldn't be running - Mode 0 selected for some reason");
+		}
+
+		@Override
+		public String getName() {
+			return "DoNothingFailsafe";
 		}
 		
 	}
