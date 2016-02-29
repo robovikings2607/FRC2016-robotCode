@@ -36,12 +36,12 @@ import edu.wpi.first.wpilibj.Solenoid;
 public class Robot extends IterativeRobot {
 	
 
-	Transmission leftMotors , rightMotors ;
-	RobotDrive rDrive ;
-	PuncherArm arm ;
-	Solenoid shifter ;
-	AHRS navX;
-	RobovikingDriveTrainProfileDriver mp;
+	public Transmission leftMotors , rightMotors ;
+	public RobotDrive rDrive ;
+	public PuncherArm arm ;
+	public Solenoid shifter ;
+	public AHRS navX;
+	//public RobovikingDriveTrainProfileDriver mp;
 	
 	RobovikingStick dController , oController ;
 	
@@ -108,7 +108,7 @@ public class Robot extends IterativeRobot {
     	// or anything
 
     	rightMotors.setInverted(true);			/// AAAAARRRRRGHHH!!!!!   WHYYYYYYYYY??????!!!!
-    	Path path = null;
+/*    	Path path = null;
 		try {
 			Scanner trajFile = new Scanner(new FileReader(new File("/home/lvuser/testProfile.txt")));
 			trajFile.useDelimiter("\\Z");
@@ -120,7 +120,9 @@ public class Robot extends IterativeRobot {
 		}
 		
 		mp = new RobovikingDriveTrainProfileDriver(leftMotors, rightMotors, path);
-		mp.followPath();
+		mp.followPath();*/
+    	
+    	
     }
 
     public void autonomousPeriodic() {

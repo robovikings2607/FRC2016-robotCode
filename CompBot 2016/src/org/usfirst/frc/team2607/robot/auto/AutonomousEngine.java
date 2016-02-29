@@ -22,6 +22,7 @@ public class AutonomousEngine implements Runnable {
 //	private PuncherArm arm;
 //	private Solenoid shifter;
 	private Robot robot;
+	private AutonomousManager kidiger;
 
 	int step;
 	int mode;
@@ -32,11 +33,13 @@ public class AutonomousEngine implements Runnable {
 		autoTimer = new Timer();
 		step = 0;
 		mode = 0;
+		
+		kidiger = new AutonomousManager(this.robot);
 	}
 
 	public void displayMode() {
 		SmartDashboard.putNumber("autoMode", mode);
-		switch(mode) {
+/*		switch(mode) {
 			case 0:
 				SmartDashboard.putString("autonMode", "Auton: NONE");
 				break;
@@ -44,7 +47,8 @@ public class AutonomousEngine implements Runnable {
 			default:
 				SmartDashboard.putString("autonMode", "UNKNOWN!!");
 				break;
-		}	
+		}	*/
+		SmartDashboard.putString("autonMode", "UNKNOWN!!");
 	
 	}
 	
