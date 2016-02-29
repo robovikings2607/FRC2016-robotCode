@@ -45,8 +45,8 @@ public class RobovikingDriveTrainProfileDriver {
 	    		pointExecutor.stop();
 	    		running = false;
 	    		done = true;
-	    		//leftMotors.disableVelPID();
-	    		
+	    		leftMotors.disableVelPID();
+	    		rightMotors.disableVelPID();
 	    	}
 	    }
 	}

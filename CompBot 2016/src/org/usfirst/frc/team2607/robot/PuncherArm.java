@@ -27,6 +27,7 @@ public class PuncherArm {
 		@Override
 		public void run() {
 			int sleepTime = 0;
+			System.out.println("Starting AutoWinder thread...");
 			while (true) {
 				try {
 					switch (step) {
@@ -140,6 +141,7 @@ public class PuncherArm {
 		//		it's intended to be run anonymously (e.g. new ArmHomingThread().start()) since it just runs and exits
 		@Override
 		public void run() {				
+			System.out.println("Starting ArmHoming Thread...");
 			armRotator.changeControlMode(TalonControlMode.PercentVbus); 
 			armRotator.setPosition(0);
 			armRotator.set(.1);
@@ -166,7 +168,6 @@ public class PuncherArm {
 		
 		armProfile = new RobovikingSRXProfileDriver(armRotator);
 		armProfile.start();
-//		new PowerLogger().start();
 		
     	// check if the shooter is at home (cocked) position, if not disable it until the zero'ing process is run
 		armLimiter = new DigitalInput(Constants.armLimiter);
@@ -200,7 +201,7 @@ public class PuncherArm {
     		armRotator.changeControlMode(TalonControlMode.MotionProfile);
     		armRotator.setPosition(0);
     	}
-    	
+    	System.out.println("PuncherArm ctor done;  armEnabled: " + armEnabled + " shooterEnabled: " + shooterEnabled);
 	}
 	
 	public void lock() {
@@ -224,6 +225,7 @@ public class PuncherArm {
 
 	// positive degToRotate lowers the arm
 	// negative degToRotate raises the arm
+/*
 	public void rotateArmXDegrees(double degToRotate) {
 		double direction = (degToRotate) / Math.abs(degToRotate);
 		double rotations = ((350.0 * degToRotate) / 360.0);
@@ -233,25 +235,26 @@ public class PuncherArm {
 		armProfile.pushAndStartMP(new SRXProfile(maxSpeed, armRotator.getPosition(), rotations, 250, 250, 10));
 		System.out.println("Arm command: " + degToRotate);
 	}
+*/
 	
 	// move arm to an absolute encoder position (# of turns from 0)
 	// will only work if arm is "homed" to a known 0 position 
 	// assume this home 0 = fully lowered;  which means absolute position must always be < 0
 	//		- negative/reverse travel raises arm;  positive/forward travel lowers arm
-	// update the below to check if a profile is currently running, and safely interrupt it via the new driver if it is,
+	// ?update the below to check if a profile is currently running, and safely interrupt it via the new driver if it is,
 	// before sending a new profile
 	
-/*
 	public void rotateArmToPosition(double targetPosition) {
 		//		- distance to travel is (-(currentPos - targetPos))
 		double distance = -((armRotator.getPosition() - targetPosition));
 		//		- distance and maxspeed must have same sign for profile generation to work
 		double direction = (distance) / Math.abs(distance);
 		double maxSpeed = direction * armRotatorMaxSpeed;
-		armProfile.setMotionProfile(new SRXProfile(maxSpeed, armRotator.getPosition(), distance, 250, 250, 10));
-		armProfile.startMotionProfile();
+		if (!armProfile.isMPRunning()) {
+			armProfile.pushAndStartMP(new SRXProfile(maxSpeed, armRotator.getPosition(), distance, 250, 250, 10));
+		}
 	}
-*/	
+
 	public void rockAndRoll(double jubbs) {
 		rollerz.set(jubbs);
 	}
@@ -279,6 +282,8 @@ public class PuncherArm {
 //	    armRotator.setPosition(0);
 //	    armProfile.reset();
 //	    armRotator.set(armProfile.getSetValue().value);
+
+		// just interrupt any existing MP;  don't ever reset position
 		armProfile.interruptMP();
 	}
 	

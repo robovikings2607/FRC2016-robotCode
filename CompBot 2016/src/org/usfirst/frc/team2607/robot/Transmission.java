@@ -29,7 +29,7 @@ public class Transmission implements SpeedController {
 	
 	public Encoder enc;
 	public RobovikingModPIDController pidLoop;
-	public ADXRS450_Gyro gyro;
+	public Gyro gyro;
 	public PIDLogger log;
 	private String name;
 	
@@ -76,7 +76,7 @@ public class Transmission implements SpeedController {
 			enc.reset();
 			enc.setDistancePerPulse(0.00766990393942820614859043794746);	// ((Wheel Di. (in) / 12) * pi) / enc counts
 			
-			pidLoop = new RobovikingModPIDController(.00001, 0.0, 0.0, 0.0, 0.0, 0.0, enc, this, gyro); 
+			pidLoop = new RobovikingModPIDController(.00001, 0.0, 0.0, 0.0, 0.0, 0.0, enc, this, gyro); // null for gyro means not used 
 			//0.14, 0.001, 0.0, 0.0151, 0.0022, -3.0/80.0,
 			pidLoop.setTurnDirection(side);
 			pidLoop.setPositionInputRange(0, 7000.0);
@@ -190,9 +190,10 @@ public class Transmission implements SpeedController {
 	public String toString() {
 		//System.out.println("SP POS: " + pidLoop.getSetpoint()[0] + " SP VEL: " + pidLoop.getSetpoint()[1] + 
 			//	" REAL POS: " + enc.getDistance() + " REAL VEL: " + enc.getRate());
+		
 		return (pidLoop.getSetpoint()[0] + "," + enc.getDistance() + "," +
 				pidLoop.getSetpoint()[1] + "," + enc.getRate() + "\n" +
-				pidLoop.getSetpoint()[3] + "," + gyro.getAngle());
+				pidLoop.getSetpoint()[3] + "," + ((gyro == null) ? "null" : gyro.getAngle()));
 	}
 /*
 	@Override

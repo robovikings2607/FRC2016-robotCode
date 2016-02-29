@@ -91,6 +91,9 @@ public class RobovikingStick extends Joystick {
 	 	return buttonStates[btn]; 
 	 } 
 	 
+	 public void setToggleButton(int buttonNumber, boolean value) {
+		 buttonStates[buttonNumber - 1] = value;
+	 }
 	 
 	 /**
 	  * Treats the specified trigger as a button rather than an axis. (The trigger returns

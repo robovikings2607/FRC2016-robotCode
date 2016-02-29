@@ -10,6 +10,16 @@ Testing to do:
 			- initially, stop homing early by triggering switch;  after confirming that works, reboot with 
 			arm up and run full homing procedure
 	b) after homing verify arm positioning works
+4) confirm that disabling and re-enabling is safe (e.g. transition from auto to teleop)
+	a) with winder homing in progress, disable and re-enable;  shooter should resume and complete homing, and end 
+	up enabled (able to shoot)
+	b) with re-cock sequence in progress, disable and re-enable;  shooter should resume and complete sequence, and 
+	end up able to shoot	 
+	c) with arm homing in progress, disable.  Should see abort message on console
+		1) upon re-enabling, arm should stay disabled and wait to operator to re-initiate homing
+	d) with arm MP in progress, disable
+		1) upon re-enabling, arm should stay in current position and you should be able to move as normal (profile
+		should handle current position)
 4) position PID tuning for drive train
 	a) run from autonomous rather than test to keep it simple and verify no unexpected wierdness	
 
@@ -105,13 +115,13 @@ Arm Positioning:
 		if you're looking at a side view with the cim to the left and the shaft to the right, forward means shaft spins towards you
 	
 	Motor is mounted on left of arm and attached via an addition gear, so therefore:
-		Forward (positive) voltage will rotate arm towards front of robot 
-		Reverse (negative) voltage will rotate arm towards rear of robot	
+		Forward (positive) voltage will rotate arm towards front of robot (down) 
+		Reverse (negative) voltage will rotate arm towards rear of robot  (up)
 		
 	350 cim revs equates to 360deg of arm travel:  i.e. deg/rev = 360/350
 	so, to travel Xdeg, number of revs required is ((350 * Xdeg) / 360)
 
-	let currentArmPos = rotations up from 0 (bottom);  is therefore always <= 0
+	let currentArmPos = rotations up from 0 (bottom);  is therefore always <= 0 when arm is not "home"
 		- remember, running motor in reverse raises the arm, forward lowers the arm
 
 	if we have a set of known positions (in # of negative rotations), we
@@ -131,11 +141,17 @@ Arm Positioning:
 		= -(-20 + 47)
 		= -(27)
 
+	- start at position 0, rotate to position -47 (move arm up)
+		= -(0 - (-47))
+		= -(47)
+
+	- start at position -47, rotate to position 0 (move arm down)
+		= -(-47 - 0)
+		= -(-47)
+		
 	arm start-up:
 		- if photoeye is true, that means the arm is not fully down;  arm position control needs to stay disabled
 		
-
-
 	an example for converting from a vision angle: given that forward motor travel rotates arm towards front, measure like a protractor:  
 		Consider 90deg as straight up, 180 as flat pointing out the front of the robot, and 0 as flat pointing out the rear
 		of the robot 	

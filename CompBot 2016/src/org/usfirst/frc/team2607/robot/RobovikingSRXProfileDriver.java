@@ -44,9 +44,11 @@ public class RobovikingSRXProfileDriver extends Thread {
 										// talon MP state could be either Hold or Disable
 				break;	
 			case 1:						// triggered start
-				if (talonMPStatus.outputEnable == CANTalon.SetValueMotionProfile.Disable) state += 1;
+				if (talonMPStatus.outputEnable == CANTalon.SetValueMotionProfile.Disable) { 
+					talonSRX.clearMotionProfileTrajectories();	
+					state += 1;
+				}
 				talonSRX.set(CANTalon.SetValueMotionProfile.Disable.value);
-				talonSRX.clearMotionProfileTrajectories();
 				break;
 			case 2:						// if we get here, talon is disabled and ready for MP push
 				if (motionProfile == null) {
@@ -69,14 +71,18 @@ public class RobovikingSRXProfileDriver extends Thread {
 				}
 				break;
 			case 10:					// reset state to interrupt and clear the running MP, and go back to wait	
-				if (talonMPStatus.outputEnable == CANTalon.SetValueMotionProfile.Disable) state = 0;
+				if (talonMPStatus.outputEnable == CANTalon.SetValueMotionProfile.Disable) {
+					talonSRX.clearMotionProfileTrajectories();
+					state = 0;
+				}
 				talonSRX.set(CANTalon.SetValueMotionProfile.Disable.value);
-				talonSRX.clearMotionProfileTrajectories();
+				break;
 		}
 	}
 	
 	@Override
 	public void run() {
+		System.out.println("Starting RobovikingSRXProfileDriver thread....");
 		talonSRX.changeMotionControlFramePeriod(5);
 		notifier.startPeriodic(.005);
 		while (true) {
@@ -94,11 +100,15 @@ public class RobovikingSRXProfileDriver extends Thread {
 	}
 	
 	public void interruptMP() {
-		// if we're running a profile (enable or hold), interrupt and go to wait state
+		// if we're running a profile (enabled), interrupt (disable and clear) and go to wait state
 		if (state != 0) state = 10;
 	}	
 	
 	public boolean isMPRunning() {
 		return (state != 0);
+	}
+	
+	public int getMPState() {
+		return state;
 	}
 }

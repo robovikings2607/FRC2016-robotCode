@@ -388,6 +388,7 @@ public class RobovikingModPIDController implements LiveWindowSendable {
    * in order to cause the robot to turn).
    */
   protected double calculateTurn() {
+	if (m_Gyro == null) return 0.0;
 	double angError = m_setpoint_ang - (m_Gyro.getAngle() * (Math.PI / 180.0)); //Profile setpoint is in radians
 			
 	return m_Turn * angError * (m_turnDirection ? 1 : -1);

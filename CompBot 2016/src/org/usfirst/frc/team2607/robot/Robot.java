@@ -46,7 +46,7 @@ public class Robot extends IterativeRobot {
 	
 	private double moveVal , rotateVal ;
 	private boolean armInTestFlag, armOneShot;
-
+	private RobovikingDriveTrainProfileDriver mp;
 	
 	/**
      * This function is run when the robot is first started up and should be
@@ -55,17 +55,21 @@ public class Robot extends IterativeRobot {
     public void robotInit() {
     	
     	shifter = new Solenoid(1,Constants.shifter);
-    	leftMotors = new Transmission(Constants.leftDeviceIDs , true, RobovikingModPIDController.kTurnLeft, null);
+    	leftMotors = new Transmission(Constants.leftDeviceIDs , true, RobovikingModPIDController.kTurnLeft, null); // null for gyro means not used
     	leftMotors.setName("leftMotors");
-    	rightMotors = new Transmission(Constants.rightDeviceIDs , true, RobovikingModPIDController.kTurnRight, null);
+    	rightMotors = new Transmission(Constants.rightDeviceIDs , true, RobovikingModPIDController.kTurnRight, null); // null for gyro means not used
     	rightMotors.setName("rightMotors");
     	rDrive = new RobotDrive(leftMotors , rightMotors);
     	rDrive.setSafetyEnabled(false);
 
+    	
     	arm = new PuncherArm();
     	System.out.println("I AM CUTE DINOSAUR, HEAR ME RAWR");
     	dController = new RobovikingStick(Constants.dControllerPort);
     	oController = new RobovikingStick(Constants.oControllerPort);
+    	
+    	// default to high gear
+    	shifter.set(true);    	
     	
     	armInTestFlag = false;
     	autoEngine = new AutonomousEngine(rDrive, arm, shifter);  	    	
@@ -99,9 +103,6 @@ public class Robot extends IterativeRobot {
     	// way the WPILib RobotDrive handles opposing sides of the robot drivetrain....again, not that we're complaining
     	// or anything
 
-    	// will also need to disable the motor PID's after completing profile, since that is now commented out of 
-    	// RobovikingDriveTrainProfileDriver....otherwise, the robot won't drive in teleop under operator control
-
     	rightMotors.setInverted(true);			/// AAAAARRRRRGHHH!!!!!   WHYYYYYYYYY??????!!!!
     	Path path = null;
 		try {
@@ -114,24 +115,23 @@ public class Robot extends IterativeRobot {
 			e.printStackTrace();
 		}
 		
-		RobovikingDriveTrainProfileDriver mp = new RobovikingDriveTrainProfileDriver(leftMotors, rightMotors, path);
+		mp = new RobovikingDriveTrainProfileDriver(leftMotors, rightMotors, path);
 		mp.followPath();
     }
 
     public void autonomousPeriodic() {
     	
+    	consoleMessage();
     	
     }
     
     public void disabledPeriodic() {
-    	arm.stopWindingSequence();    	
+    	// arm.stopWindingSequence();  // don't stop the winding sequence in disabled; let it finish when we re-enable
+    								   // since that is normal match behavior
     	arm.resetArm();
     	arm.checkArmEncoderPresent();
-    	if(++counter >= 50){
-    		System.out.println( "ShooterEnabled: " + arm.isShooterEnabled() + "  Shooter Eye: " + arm.isShooterCocked() + " Arm Eye: " + arm.getArmLimiter());
-    		System.out.println("OPAD POV: " + oController.getPOV(0));
-    		counter = 0;
-    	}
+    	
+    	consoleMessage();
     }
 
 	@Override
@@ -144,23 +144,28 @@ public class Robot extends IterativeRobot {
 		rightMotors.setInverted(false);
 	}
     
-    int counter = 0;
+    int counter = 0, msgCount = 0;
+    public void consoleMessage() {
+    	if(++counter >= 50){
+    		msgCount += 1;
+    		System.out.println(msgCount + ": Shooter Enabled: " + arm.isShooterEnabled() + "  Shooter Cocked: " + arm.isShooterCocked() 
+    							+ "Shooter Eye: " + arm.getShooterEye());
+    		System.out.println(msgCount + ": Arm Eye: " + arm.getArmLimiter() + " Arm Enabled: " + arm.isArmEnabled()
+    							+ " Arm Down: " + arm.isArmDown());
+    		System.out.println(msgCount + ": Drive Profile running: " + mp.isRunning() + " ; Done: " + mp.isDone());
+    		counter = 0;
+    	}    	
+    }
+    
     public void teleopPeriodic() {
 
-    	if(++counter >= 50){
-    		System.out.println( "Shooter Enabled: " + arm.isShooterEnabled() + "  Shooter Cocked: " + arm.isShooterCocked() 
-    							+ "Shooter Eye: " + arm.getShooterEye());
-    		System.out.println(" Arm Eye: " + arm.getArmLimiter() + " Arm Enabled: " + arm.isArmEnabled()
-    							+ " Arm Down: " + arm.isArmDown());
-    		counter = 0;
-    	}
-
+    	consoleMessage();
     	
     	moveVal = -( dController.getRawAxisWithDeadzone(RobovikingStick.xBoxLeftStickY) );
     	rotateVal = - (dController.getRawAxisWithDeadzone(RobovikingStick.xBoxRightStickX));
     	
     	// Driving!
-    	shifter.set(!dController.getToggleButton(RobovikingStick.xBoxButtonRightStick));
+    	shifter.set(!dController.getToggleButton(RobovikingStick.xBoxButtonRightStick));  // defaults to high gear (true)
     	rDrive.arcadeDrive(moveVal, rotateVal);
     	   
     	//Shooting controls
@@ -210,11 +215,11 @@ public class Robot extends IterativeRobot {
     		
     		switch (oController.getPOV(0)) {
 				case 0:
-					if (!armOneShot && arm.isArmDown() && arm.isArmEnabled()) arm.rotateArmXDegrees(-47);
+					if (!armOneShot && arm.isArmDown() && arm.isArmEnabled()) arm.rotateArmToPosition(-45.69); // arm.rotateArmXDegrees(-47);
 					armOneShot = true;
 					break;
 				case 180:
-					if (!armOneShot && !arm.isArmDown() && arm.isArmEnabled()) arm.rotateArmXDegrees(47);
+					if (!armOneShot && !arm.isArmDown() && arm.isArmEnabled()) arm.rotateArmToPosition(0);		//arm.rotateArmXDegrees(47);
 					armOneShot = true;
 					break;
 				case -1:
@@ -242,7 +247,8 @@ public class Robot extends IterativeRobot {
  */    
 
     public void testInit() {
-
+    	armInTestFlag = true;		// I don't trust test mode with the SRX, so prevent moving the arm back in teleop 
+    								// unless we restart the code
     }
     
     public void testPeriodic() {
