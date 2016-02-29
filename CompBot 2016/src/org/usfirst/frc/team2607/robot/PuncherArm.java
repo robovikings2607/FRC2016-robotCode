@@ -311,6 +311,10 @@ public class PuncherArm {
 		return !armLimiter.get();		// lowered position
 	}
 	
+	public boolean isArmWaiting() {
+		return !armProfile.isMPRunning();
+	}
+	
 	public void executeWinderHomingSequence(){
 		winderThread.goToHomePosition();
 	}

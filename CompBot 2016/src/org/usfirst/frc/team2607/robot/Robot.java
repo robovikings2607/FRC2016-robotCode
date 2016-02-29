@@ -47,6 +47,7 @@ public class Robot extends IterativeRobot {
 	private double moveVal , rotateVal ;
 	private boolean armInTestFlag, armOneShot;
 	private RobovikingDriveTrainProfileDriver mp;
+	private int armPosIndex = 0;						// index into array of arm positions
 	
 	/**
      * This function is run when the robot is first started up and should be
@@ -64,6 +65,7 @@ public class Robot extends IterativeRobot {
 
     	
     	arm = new PuncherArm();
+    	armPosIndex = 0;
     	System.out.println("I AM CUTE DINOSAUR, HEAR ME RAWR");
     	dController = new RobovikingStick(Constants.dControllerPort);
     	oController = new RobovikingStick(Constants.oControllerPort);
@@ -208,18 +210,25 @@ public class Robot extends IterativeRobot {
     	//Controlling the claw (open or close)
     	arm.toggleClaw(oController.getToggleButton(RobovikingStick.xBoxButtonB));
     	
-    	//Controlling the arm - check the position encoder is present and interrupt MP if not   	
+    	//Controlling the arm - check safeties: 
+    	//	1) the position encoder is present and interrupt MP if not
     	arm.checkArmEncoderPresent();
 
     	if(!armInTestFlag){
     		
     		switch (oController.getPOV(0)) {
 				case 0:
-					if (!armOneShot && arm.isArmDown() && arm.isArmEnabled()) arm.rotateArmToPosition(-45.69); // arm.rotateArmXDegrees(-47);
+					if (!armOneShot && arm.isArmEnabled() && arm.isArmWaiting() && armPosIndex < (Constants.armPositions.length - 1)) { 
+						armPosIndex += 1;
+						arm.rotateArmToPosition(Constants.armPositions[armPosIndex]); //arm.rotateArmToPosition(-45.69); // arm.rotateArmXDegrees(-47);
+					}
 					armOneShot = true;
 					break;
 				case 180:
-					if (!armOneShot && !arm.isArmDown() && arm.isArmEnabled()) arm.rotateArmToPosition(0);		//arm.rotateArmXDegrees(47);
+					if (!armOneShot && arm.isArmEnabled() && arm.isArmWaiting() && (armPosIndex > 0)) {
+						armPosIndex -= 1;
+						arm.rotateArmToPosition(Constants.armPositions[armPosIndex]);		//arm.rotateArmXDegrees(47);
+					}
 					armOneShot = true;
 					break;
 				case -1:

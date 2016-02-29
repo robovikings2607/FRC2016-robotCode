@@ -36,6 +36,8 @@ public class Constants {
 				dControllerPort = 0	,
 				oControllerPort = 1	;
 	
+	public static double[] armPositions = {0.0, -45.69};
+	
 	
 	public static int[] leftDeviceIDs = { leftMotor1 , leftMotor2 , leftMotor3 , leftEncChannelA , leftEncChannelB };
 	public static int[] rightDeviceIDs = { rightMotor1 , rightMotor2 , rightMotor3 , rightEncChannelA , rightEncChannelB };
