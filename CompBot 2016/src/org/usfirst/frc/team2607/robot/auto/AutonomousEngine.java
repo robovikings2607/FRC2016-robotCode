@@ -1,4 +1,4 @@
-package org.usfirst.frc.team2607.robot;
+package org.usfirst.frc.team2607.robot.auto;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -6,6 +6,8 @@ import java.io.PrintWriter;
 import java.lang.reflect.Array;
 import java.util.Scanner;
 import java.util.Vector;
+
+import org.usfirst.frc.team2607.robot.Robot;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotDrive;
@@ -16,18 +18,17 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class AutonomousEngine implements Runnable {
 	Timer autoTimer;
-	private RobotDrive rdrive;
-	private PuncherArm arm;
-	private Solenoid shifter;
+//	private RobotDrive rdrive;
+//	private PuncherArm arm;
+//	private Solenoid shifter;
+	private Robot robot;
 
 	int step;
 	int mode;
 
 
-	public AutonomousEngine(RobotDrive drive, PuncherArm arm, Solenoid shifter){
-		rdrive = drive;
-		this.arm = arm;
-		this.shifter = shifter;
+	public AutonomousEngine(Robot robot){
+		this.robot = robot;
 		autoTimer = new Timer();
 		step = 0;
 		mode = 0;
@@ -98,6 +99,8 @@ public class AutonomousEngine implements Runnable {
 		System.out.println("Exiting Auto");
 
 	}
+	
+	
 
 
 

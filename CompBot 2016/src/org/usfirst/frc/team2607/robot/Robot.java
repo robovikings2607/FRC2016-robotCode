@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.Scanner;
 
+import org.usfirst.frc.team2607.robot.auto.AutonomousEngine;
+
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -39,6 +41,7 @@ public class Robot extends IterativeRobot {
 	PuncherArm arm ;
 	Solenoid shifter ;
 	AHRS navX;
+	RobovikingDriveTrainProfileDriver mp;
 	
 	RobovikingStick dController , oController ;
 	
@@ -46,7 +49,6 @@ public class Robot extends IterativeRobot {
 	
 	private double moveVal , rotateVal ;
 	private boolean armInTestFlag, armOneShot;
-	private RobovikingDriveTrainProfileDriver mp;
 	private int armPosIndex = 0;						// index into array of arm positions
 	
 	/**
@@ -74,7 +76,7 @@ public class Robot extends IterativeRobot {
     	shifter.set(true);    	
     	
     	armInTestFlag = false;
-    	autoEngine = new AutonomousEngine(rDrive, arm, shifter);  	    	
+    	autoEngine = new AutonomousEngine(this);  	    	
     	
     	// for tuning....webserver to view PID logs
     	Server server = new Server(5801);
