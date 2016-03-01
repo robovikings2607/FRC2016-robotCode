@@ -191,6 +191,7 @@ public class PuncherArm {
 		armRotator.setReverseSoftLimit(-82.6);
 		//armRotator.setReverseSoftLimit(-15);
 		armRotator.enableReverseSoftLimit(true);
+		armRotator.enableForwardSoftLimit(false);
     	armRotator.setProfile(0);
     	armRotator.setF(0.003);
     	armRotator.setP(.03);

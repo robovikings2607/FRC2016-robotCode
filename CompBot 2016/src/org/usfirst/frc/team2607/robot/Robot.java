@@ -24,6 +24,7 @@ import com.team254.lib.trajectory.io.TextFileDeserializer;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
+import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.Solenoid;
 
 /**
@@ -58,6 +59,7 @@ public class Robot extends IterativeRobot {
      */
     public void robotInit() {
     	
+    	navX = new AHRS(SPI.Port.kMXP);
     	shifter = new Solenoid(1,Constants.shifter);
     	leftMotors = new Transmission(Constants.leftDeviceIDs , true, RobovikingModPIDController.kTurnLeft, null); // null for gyro means not used
     	leftMotors.setName("Left");
