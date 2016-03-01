@@ -36,6 +36,8 @@ public class RobovikingDriveTrainProfileDriver {
 	    		done = false;
 	    		leftMotors.enableVelPID();
 	    		rightMotors.enableVelPID();
+	    		leftMotors.resetEncoder();
+	    		rightMotors.resetEncoder();
 	    	}
 	    	step = (System.currentTimeMillis() - startTime) / (long)(dtSeconds * 1000);
 	    	try {

@@ -60,9 +60,9 @@ public class Robot extends IterativeRobot {
     	
     	shifter = new Solenoid(1,Constants.shifter);
     	leftMotors = new Transmission(Constants.leftDeviceIDs , true, RobovikingModPIDController.kTurnLeft, null); // null for gyro means not used
-    	leftMotors.setName("leftMotors");
+    	leftMotors.setName("Left");
     	rightMotors = new Transmission(Constants.rightDeviceIDs , true, RobovikingModPIDController.kTurnRight, null); // null for gyro means not used
-    	rightMotors.setName("rightMotors");
+    	rightMotors.setName("Right");
     	rDrive = new RobotDrive(leftMotors , rightMotors);
     	rDrive.setSafetyEnabled(false);
 
@@ -124,8 +124,11 @@ public class Robot extends IterativeRobot {
 		mp = new RobovikingDriveTrainProfileDriver(leftMotors, rightMotors, path);
 		mp.followPath();*/
     	
+    	leftMotors.log.enableLogging(true);
+    	rightMotors.log.enableLogging(true);
+    	
     	autoThread = new Thread(autoEngine);
-    	autoEngine.setMode(1);
+    	autoEngine.setMode(2);
     	autoThread.start(); //JUST FOR TESTING
     }
 
@@ -142,6 +145,9 @@ public class Robot extends IterativeRobot {
     	arm.checkArmEncoderPresent();
     	
     	consoleMessage();
+    	
+    	leftMotors.log.enableLogging(false);
+    	rightMotors.log.enableLogging(false);
     }
 
 	@Override
@@ -161,7 +167,7 @@ public class Robot extends IterativeRobot {
     		System.out.println(msgCount + ": Shooter Enabled: " + arm.isShooterEnabled() + "  Shooter Cocked: " + arm.isShooterCocked() 
     							+ "Shooter Eye: " + arm.getShooterEye());
     		System.out.println(msgCount + ": Arm Eye: " + arm.getArmLimiter() + " Arm Enabled: " + arm.isArmEnabled()
-    							+ " Arm Down: " + arm.isArmDown());
+    							+ " Arm Down: " + arm.isArmDown() + "\n");
     		counter = 0;
     	}    	
     }
@@ -202,6 +208,12 @@ public class Robot extends IterativeRobot {
     	if (oController.getButtonReleasedOneShot(RobovikingStick.xBoxButtonStart) && !arm.isShooterEnabled()) {
     		arm.stopWindingSequence();
     	}
+    	
+    	// Homing sequence for arm
+    	if (oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonBack) && !arm.isArmEnabled()) {
+    		arm.executeArmHomingSequence();
+    	}
+    	
     	
     	//Controlling the rollers
     	if(oController.getRawButton(RobovikingStick.xBoxRightBumper)) {

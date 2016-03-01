@@ -65,7 +65,8 @@ public class PIDLogger extends Thread {
 	        				    theTrans.pidLoop.getSetpoint()[1] + "," + 
 	        					theTrans.enc.getRate() + "," + 
 	        				    theTrans.pidLoop.getSetpoint()[3] + "," +
-	        				    (theTrans.gyro.getAngle() * (Math.PI/180.0)) + "," +
+	        				    //(theTrans.gyro.getAngle() * (Math.PI/180.0)) + "," +
+	        				    "0," +
 	        				    theTrans.pidLoop.getError() + "," +
 	        				    (theTrans.pidLoop.getError() * theTrans.pidLoop.getP()) + "," +
 	        				    (theTrans.pidLoop.getError() * theTrans.pidLoop.getI()) + "," +
@@ -79,7 +80,8 @@ public class PIDLogger extends Thread {
     				    theTrans.pidLoop.getSetpoint()[1] + "," + 
     					theTrans.enc.getRate() + "," + 
     				    theTrans.pidLoop.getSetpoint()[3] + "," +
-    				    (theTrans.gyro.getAngle() * (Math.PI/180.0)) + "," +
+    				    //(theTrans.gyro.getAngle() * (Math.PI/180.0)) + "," +
+    				    "0," +
     				    theTrans.pidLoop.getError() + "," +
     				    (theTrans.pidLoop.getError() * theTrans.pidLoop.getP()) + "," +
     				    (theTrans.pidLoop.getError() * theTrans.pidLoop.getI()) + "," +

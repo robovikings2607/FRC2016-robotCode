@@ -74,9 +74,12 @@ public class Transmission implements SpeedController {
 			enc = new Encoder(deviceID[3] , deviceID[4] , side, Encoder.EncodingType.k1X);
 			enc.setPIDSourceType(PIDSourceType.kDisplacement);
 			enc.reset();
-			enc.setDistancePerPulse(0.00766990393942820614859043794746);	// ((Wheel Di. (in) / 12) * pi) / enc counts
-			
-			pidLoop = new RobovikingModPIDController(.000001, 0.0, 0.0, 0.067, 0.0, 0.0, enc, this, gyro); // null for gyro means not used 
+			enc.setDistancePerPulse(0.00760);	// ((Wheel Di. (in) / 12) * pi) / enc counts
+			if (side) {		// rightMotors
+				pidLoop = new RobovikingModPIDController(0.5, 0.0, 0.0, 0.081, 0.03, 0.0, enc, this, gyro); // null for gyro means not used
+			} else { 		// leftMotors
+				pidLoop = new RobovikingModPIDController(0.5, 0.0, 0.0, 0.0823, 0.03, 0.0, enc, this, gyro); // null for gyro means not used
+			}
 			//0.14, 0.001, 0.0, 0.0151, 0.0022, -3.0/80.0,
 			pidLoop.setTurnDirection(side);
 			pidLoop.setPositionInputRange(0, 7000.0);
@@ -87,8 +90,8 @@ public class Transmission implements SpeedController {
 			//pidLoop.setAbsoluteTolerance(.5);
 			
 			log = new PIDLogger(this);
-			
 			log.start();
+		
 		}
 		
 	}
@@ -199,6 +202,10 @@ public class Transmission implements SpeedController {
 	@Override
 	public void stopMotor() {
 		//Must be implemented, for what?
+	}
+	
+	public void resetEncoder(){
+		enc.reset();
 	}
 
 }

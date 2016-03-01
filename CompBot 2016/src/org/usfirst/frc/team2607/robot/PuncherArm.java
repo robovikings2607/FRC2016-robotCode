@@ -144,7 +144,8 @@ public class PuncherArm {
 			System.out.println("Starting ArmHoming Thread...");
 			armRotator.changeControlMode(TalonControlMode.PercentVbus); 
 			armRotator.setPosition(0);
-			armRotator.set(.1);
+			armRotator.set(.15);
+			try { Thread.sleep(250); } catch (Exception e) {}
 			while (armLimiter.get() && armRotator.getSpeed() > 0) {
 				try { Thread.sleep(10);} catch (Exception e) {}
 			} 
@@ -317,6 +318,10 @@ public class PuncherArm {
 	
 	public void executeWinderHomingSequence(){
 		winderThread.goToHomePosition();
+	}
+	
+	public void executeArmHomingSequence() {
+		new ArmHomingThread().start();
 	}
 	
 	public void startFromUncockedPosition() {
