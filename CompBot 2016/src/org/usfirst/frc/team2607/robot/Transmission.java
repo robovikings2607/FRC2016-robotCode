@@ -76,7 +76,7 @@ public class Transmission implements SpeedController {
 			enc.reset();
 			enc.setDistancePerPulse(0.00766990393942820614859043794746);	// ((Wheel Di. (in) / 12) * pi) / enc counts
 			
-			pidLoop = new RobovikingModPIDController(.00001, 0.0, 0.0, 0.0, 0.0, 0.0, enc, this, gyro); // null for gyro means not used 
+			pidLoop = new RobovikingModPIDController(.000001, 0.0, 0.0, 0.067, 0.0, 0.0, enc, this, gyro); // null for gyro means not used 
 			//0.14, 0.001, 0.0, 0.0151, 0.0022, -3.0/80.0,
 			pidLoop.setTurnDirection(side);
 			pidLoop.setPositionInputRange(0, 7000.0);

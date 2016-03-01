@@ -71,6 +71,7 @@ public class AutonomousManager {
 			
 			RobovikingDriveTrainProfileDriver mp = new RobovikingDriveTrainProfileDriver(robot.leftMotors,robot.rightMotors, p);
 			mp.followPath();
+			
 		}
 
 		@Override
