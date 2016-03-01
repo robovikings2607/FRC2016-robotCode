@@ -195,10 +195,10 @@ public class Transmission implements SpeedController {
 				pidLoop.getSetpoint()[1] + "," + enc.getRate() + "\n" +
 				pidLoop.getSetpoint()[3] + "," + ((gyro == null) ? "null" : gyro.getAngle()));
 	}
-/*
+
 	@Override
 	public void stopMotor() {
 		//Must be implemented, for what?
 	}
-*/
+
 }

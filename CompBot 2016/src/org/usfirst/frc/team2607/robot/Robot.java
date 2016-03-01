@@ -162,7 +162,6 @@ public class Robot extends IterativeRobot {
     							+ "Shooter Eye: " + arm.getShooterEye());
     		System.out.println(msgCount + ": Arm Eye: " + arm.getArmLimiter() + " Arm Enabled: " + arm.isArmEnabled()
     							+ " Arm Down: " + arm.isArmDown());
-    		System.out.println(msgCount + ": Drive Profile running: " + mp.isRunning() + " ; Done: " + mp.isDone());
     		counter = 0;
     	}    	
     }
@@ -294,7 +293,7 @@ public class Robot extends IterativeRobot {
     	else if(oController.getTriggerPressed(RobovikingStick.xBoxLeftTrigger)) {  // left trigger = axis 2
     		arm.lock();
     	}
-    	
+/*    	
     	if(oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonY) ) {
     		armInTestFlag = true;
     		arm.rotateArmXDegrees(-5.0); //(new SRXProfile(-18, -4.861, 250, 250, 10));
@@ -303,7 +302,7 @@ public class Robot extends IterativeRobot {
     		armInTestFlag = true;
     		arm.rotateArmXDegrees(5.0); // new SRXProfile(18, 4.861, 250, 250, 10));
     	}  	  	
-    	
+*/    	
     	/* // SP is not just a velocity anymore
     	 * // testing of velocity PID on Transmission 
     	if (dController.getRawButton(RobovikingStick.xBoxButtonY)) {
