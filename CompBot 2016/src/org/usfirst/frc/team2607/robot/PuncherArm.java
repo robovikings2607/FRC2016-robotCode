@@ -289,6 +289,10 @@ public class PuncherArm {
 		armProfile.interruptMP();
 	}
 	
+	public double getArmPosition() {
+		return armRotator.getPosition();
+	}
+	
 	public boolean isShooterEnabled() { 	//for shooterEnabled field
 		return shooterEnabled;
 	}

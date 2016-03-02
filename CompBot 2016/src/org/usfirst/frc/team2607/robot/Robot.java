@@ -48,11 +48,12 @@ public class Robot extends IterativeRobot {
 	
 	AutonomousEngine autoEngine;
 	Thread autoThread = null;
+	SimpleTableServer dataTable;
 	
 	private double moveVal , rotateVal ;
 	private boolean armInTestFlag, armOneShot;
 	private int armPosIndex = 0;						// index into array of arm positions
-	
+		
 	/**
      * This function is run when the robot is first started up and should be
      * used for any initialization code.
@@ -79,8 +80,11 @@ public class Robot extends IterativeRobot {
     	shifter.set(true);    	
     	
     	armInTestFlag = false;
+
     	autoEngine = new AutonomousEngine(this); 
     	autoEngine.loadSavedMode();
+
+    	dataTable = new SimpleTableServer();
     	
     	// for tuning....webserver to view PID logs
     	Server server = new Server(5801);
@@ -164,6 +168,11 @@ public class Robot extends IterativeRobot {
     
     int counter = 0, msgCount = 0;
     public void consoleMessage() {
+    	
+    	if (counter >= 25) {
+    		dataTable.put("ArmPosition", arm.getArmPosition());
+    	}
+    	
     	if(++counter >= 50){
     		msgCount += 1;
     		System.out.println(msgCount + ": Shooter Enabled: " + arm.isShooterEnabled() + "  Shooter Cocked: " + arm.isShooterCocked() 
