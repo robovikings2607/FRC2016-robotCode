@@ -64,7 +64,7 @@ public class AutonomousEngine implements Runnable {
 	}
 	
 	public void selectMode() {
-		if (++mode > 16) mode = 1;
+		if (++mode > (kidiger.modes.size() - 1)) mode = 1;
 		saveMode();
 		displayMode();
 	}

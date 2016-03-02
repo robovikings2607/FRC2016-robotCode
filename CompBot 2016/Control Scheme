@@ -1,15 +1,16 @@
 Testing to do:
-1) boot up with arm lowered; verify arm positioning works with new driver class
-	a) run arm up; when up it shouldn't go up again
-	b) run arm down; when down it shouldn't go down again 
-2) change code to use an array of absolute positions rather than rotating by angle
-	a) fully test, including pushing up while arm is already moving up (should have no effect, 
-	just finish original profile)
-3) test arm homing procedure 
-	a) boot up with arm up; verify can't move arm in teleop;  verify homing works
-			- initially, stop homing early by triggering switch;  after confirming that works, reboot with 
-			arm up and run full homing procedure
-	b) after homing verify arm positioning works
+[DONE] 1) boot up with arm lowered; verify arm positioning works with new driver class
+			a) run arm up; when up it shouldn't go up again
+			b) run arm down; when down it shouldn't go down again 
+[DONE] 2) change code to use an array of absolute positions rather than rotating by angle
+			a) fully test, including pushing up while arm is already moving up (should have no effect, 
+			just finish original profile)
+[DONE] 3) test arm homing procedure 
+			a) boot up with arm up; verify can't move arm in teleop;  verify homing works
+				- initially, stop homing early by triggering switch;  after confirming that works, reboot with 
+				arm up and run full homing procedure
+			b) after homing verify arm positioning works
+
 4) confirm that disabling and re-enabling is safe (e.g. transition from auto to teleop)
 	a) with winder homing in progress, disable and re-enable;  shooter should resume and complete homing, and end 
 	up enabled (able to shoot)
@@ -20,6 +21,7 @@ Testing to do:
 	d) with arm MP in progress, disable
 		1) upon re-enabling, arm should stay in current position and you should be able to move as normal (profile
 		should handle current position)
+
 4) position PID tuning for drive train
 	a) run from autonomous rather than test to keep it simple and verify no unexpected wierdness	
 
