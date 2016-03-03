@@ -21,7 +21,7 @@ public class AutonomousManager {
 		
 		modes.add(new DoNothingFailsafe());
 		modes.add(new DoNothing());
-		modes.add(new BreachLowBar(robot));
+		modes.add(new BreachLowBarAndShoot(robot));
 	}
 	
 	public AutonomousMode getModeByName (String name){
@@ -57,17 +57,17 @@ public class AutonomousManager {
 	 */
 	
 
-	public class BreachLowBar extends AutonomousMode {
+	public class BreachLowBarAndShoot extends AutonomousMode {
 
-		BreachLowBar(Robot r) {
+		BreachLowBarAndShoot(Robot r) {
 			super(r);
 			// TODO Auto-generated constructor stub
 		}
 
 		@Override
 		public void run() {
-			// TODO Auto-generated method stub
-			Path p = getPathFromFile("/home/lvuser/testProfile.txt");
+			
+			Path p = getPathFromFile("/home/lvuser/breachLowBarAndShoot.txt");
 			
 			RobovikingDriveTrainProfileDriver mp = new RobovikingDriveTrainProfileDriver(robot.leftMotors,robot.rightMotors, p);
 			mp.followPath();
