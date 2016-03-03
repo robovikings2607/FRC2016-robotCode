@@ -147,14 +147,9 @@ public class AutonomousManager {
 			robot.arm.toggleClaw(false);
 			try {
 				Thread.sleep(500);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			robot.arm.executeShootAndReloadSequence();		// go ahead and shoot	
-;
-			
-			
+			} catch (InterruptedException e) {}
+
+			robot.arm.shoot();		// go ahead and shoot	
 			
 		}
 

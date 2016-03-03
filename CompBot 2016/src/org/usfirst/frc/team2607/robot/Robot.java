@@ -119,19 +119,6 @@ public class Robot extends IterativeRobot {
     	// or anything
 
     	rightMotors.setInverted(true);			/// AAAAARRRRRGHHH!!!!!   WHYYYYYYYYY??????!!!!
-/*    	Path path = null;
-		try {
-			Scanner trajFile = new Scanner(new FileReader(new File("/home/lvuser/testProfile.txt")));
-			trajFile.useDelimiter("\\Z");
-			String traj = trajFile.next();
-			TextFileDeserializer tfds = new TextFileDeserializer();
-			path = tfds.deserialize(traj);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-		mp = new RobovikingDriveTrainProfileDriver(leftMotors, rightMotors, path);
-		mp.followPath();*/
     	
     	leftMotors.log.enableLogging(true);
     	rightMotors.log.enableLogging(true);
