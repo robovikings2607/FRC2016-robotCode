@@ -82,7 +82,7 @@ public class Transmission implements SpeedController {
 			}
 			//0.14, 0.001, 0.0, 0.0151, 0.0022, -3.0/80.0,
 			pidLoop.setTurnDirection(side);
-			pidLoop.setPositionInputRange(0, 7000.0);
+			pidLoop.setPositionInputRange(-7000, 7000.0);
 			pidLoop.setAccelerationInputRange(-20, 20);
 			pidLoop.setVelocityInputRange(-15.0, 15.0);
 			pidLoop.setHeadingInputRange(-360, 360);

@@ -19,6 +19,7 @@ public class RobovikingDriveTrainProfileDriver {
 	private Trajectory lt, rt;
 	private boolean running = false, done = false;
 	private long step;
+	private boolean runBACKWARDS = false;
 	
 	private class PeriodicRunnable implements java.lang.Runnable {
 		private long startTime;
@@ -28,6 +29,10 @@ public class RobovikingDriveTrainProfileDriver {
 			firstTime = true;
 		}
 
+		private Segment invertSegment(Segment s) {
+			return new Segment(-s.pos, -s.vel, -s.acc, -s.jerk, s.heading, s.dt, s.x, s.y);
+		}
+		
 		public void run() {
 	    	if (firstTime) {
 	    		firstTime = false;
@@ -41,14 +46,20 @@ public class RobovikingDriveTrainProfileDriver {
 	    	}
 	    	step = (System.currentTimeMillis() - startTime) / (long)(dtSeconds * 1000);
 	    	try {
-	    		leftMotors.setSP(leftVelPts.get((int)step));
-	    		rightMotors.setSP(rightVelPts.get((int)step));	
+	    		if (runBACKWARDS){
+	    			leftMotors.setSP(invertSegment(leftVelPts.get((int)step)));
+		    		rightMotors.setSP(invertSegment(rightVelPts.get((int)step)));	
+	    		} else {
+		    		leftMotors.setSP(leftVelPts.get((int)step));
+		    		rightMotors.setSP(rightVelPts.get((int)step));	
+	    		}
 	    	} catch (Exception e) {
 	    		pointExecutor.stop();
 	    		running = false;
 	    		done = true;
 	    		leftMotors.disableVelPID();
 	    		rightMotors.disableVelPID();
+	    		if (runBACKWARDS) runBACKWARDS = false;
 	    	}
 	    }
 	}
@@ -80,7 +91,13 @@ public class RobovikingDriveTrainProfileDriver {
 		return done;
 	}
 	
+	public void followPathBACKWARDS() {
+		runBACKWARDS = true;
+		pointExecutor.startPeriodic(dtSeconds / 2.0);
+	}
+	
 	public void followPath() {
+		runBACKWARDS = false;
 		pointExecutor.startPeriodic(dtSeconds / 2.0);
 	}
 	

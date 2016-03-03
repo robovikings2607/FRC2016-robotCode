@@ -55,24 +55,27 @@ public class AutonomousManager {
 		if(zeroFirst) navx.zeroYaw();
 		robot.rightMotors.setInverted(false); //Set to TRUE when done
 		
-		double kP = 0.001;
-		double maxTurn = 0.2;
-		double tolerance = 2;
+		double kP = 0.02;
+		double maxTurn = 0.8;
+		double tolerance = 2.5;
+		robot.shifter.set(false);
 		
-		while(true){
+		while(true) {
 			double error = navx.getYaw() - degrees;
+			System.out.println("TurnAngleError: " + error);
 			
 			double calcTurn = kP * error;
 			if (error <= 0){
-				calcTurn = Math.max(-maxTurn, calcTurn);
+				calcTurn = Math.max(-maxTurn, calcTurn - .4);
 			} else {
-				calcTurn = Math.min(maxTurn, calcTurn);
+				calcTurn = Math.min(maxTurn, calcTurn + .4);
 			}
 			
 			if (navx.getYaw() > (degrees - tolerance) && navx.getYaw() < (degrees + tolerance)){
 				break;
 			} else {
 				robot.rDrive.arcadeDrive(0, calcTurn);
+				System.out.println("CommandedVoltage: " + calcTurn);
 			}
 			
 			try {
@@ -84,6 +87,7 @@ public class AutonomousManager {
 		
 		robot.rDrive.arcadeDrive(0, 0);
 		robot.rightMotors.setInverted(true);
+		robot.shifter.set(true);
 	}
 	
 	
@@ -107,6 +111,7 @@ public class AutonomousManager {
 			Path p = getPathFromFile("/home/lvuser/breachLowBarAndShoot.txt");
 			
 			robot.navX.zeroYaw();
+			robot.arm.toggleClaw(true);
 			
 			if (!robot.arm.isArmEnabled()) {
 				robot.arm.executeArmHomingSequence();
@@ -114,11 +119,42 @@ public class AutonomousManager {
 			}
 			
 			RobovikingDriveTrainProfileDriver mp = new RobovikingDriveTrainProfileDriver(robot.leftMotors,robot.rightMotors, p);
-			mp.followPath();
+			mp.followPathBACKWARDS();
 			
-			while (!mp.isDone()) {try { Thread.sleep(20); } catch (Exception e) {}}
+			int counter = 0;
+			while (!mp.isDone()) {
+				try { 
+					Thread.sleep(20);
+					if (counter > 0 && counter < 5){
+						robot.arm.rockAndRoll(-.5);
+					} 
+					if (counter > 5 && counter < 10) {
+						robot.arm.rockAndRoll(0);
+					} 
+					if (counter > 10) {
+						counter = 0;
+					} 
+					counter++;
+				} catch (Exception e) {}
+			}
+			robot.arm.rockAndRoll(0);
 			
-			rotateDegrees(180, false);
+			robot.arm.rotateArmToPosition(-45.69);
+			rotateDegrees(-130, false);
+			
+			while (!robot.arm.isArmWaiting()) {try { Thread.sleep(20); } catch (Exception e) {}}
+			
+			robot.arm.toggleClaw(false);
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			robot.arm.executeShootAndReloadSequence();		// go ahead and shoot	
+;
+			
+			
 			
 		}
 
