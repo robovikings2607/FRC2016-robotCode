@@ -84,8 +84,11 @@ public class Robot extends IterativeRobot {
     	autoEngine = new AutonomousEngine(this); 
     	autoEngine.loadSavedMode();
 
-    	dataTable = new SimpleTableServer();
-    	
+    	try {
+    		dataTable = new SimpleTableServer();
+    	} catch (Exception e) {
+    		dataTable = null;
+    	}
     	// for tuning....webserver to view PID logs
     	Server server = new Server(5801);
         ServerConnector connector = new ServerConnector(server);
@@ -169,7 +172,7 @@ public class Robot extends IterativeRobot {
     int counter = 0, msgCount = 0;
     public void consoleMessage() {
     	
-    	if (counter >= 25) {
+    	if (counter >= 25 && dataTable != null) {
     		dataTable.put("ArmPosition", arm.getArmPosition());
     	}
     	

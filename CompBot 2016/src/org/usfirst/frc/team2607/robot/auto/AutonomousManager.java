@@ -69,6 +69,13 @@ public class AutonomousManager {
 			
 			Path p = getPathFromFile("/home/lvuser/breachLowBarAndShoot.txt");
 			
+			if (!robot.arm.isArmEnabled()) {
+				robot.arm.executeArmHomingSequence();
+				while (!robot.arm.isArmEnabled()) {
+					try { Thread.sleep(20); } catch (Exception e) {}
+				}
+			}
+			
 			RobovikingDriveTrainProfileDriver mp = new RobovikingDriveTrainProfileDriver(robot.leftMotors,robot.rightMotors, p);
 			mp.followPath();
 			
