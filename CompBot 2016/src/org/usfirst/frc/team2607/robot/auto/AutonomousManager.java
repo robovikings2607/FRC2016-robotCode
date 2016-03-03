@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import org.usfirst.frc.team2607.robot.Robot;
 import org.usfirst.frc.team2607.robot.RobovikingDriveTrainProfileDriver;
 
+import com.kauailabs.navx.frc.AHRS;
 import com.team254.lib.trajectory.Path;
 
 /**
@@ -49,6 +50,42 @@ public class AutonomousManager {
 		}
 	}
 	
+	public void rotateDegrees(double degrees, boolean zeroFirst){
+		AHRS navx = robot.navX;
+		if(zeroFirst) navx.zeroYaw();
+		robot.rightMotors.setInverted(false); //Set to TRUE when done
+		
+		double kP = 0.001;
+		double maxTurn = 0.2;
+		double tolerance = 2;
+		
+		while(true){
+			double error = navx.getYaw() - degrees;
+			
+			double calcTurn = kP * error;
+			if (error <= 0){
+				calcTurn = Math.max(-maxTurn, calcTurn);
+			} else {
+				calcTurn = Math.min(maxTurn, calcTurn);
+			}
+			
+			if (navx.getYaw() > (degrees - tolerance) && navx.getYaw() < (degrees + tolerance)){
+				break;
+			} else {
+				robot.rDrive.arcadeDrive(0, calcTurn);
+			}
+			
+			try {
+				Thread.sleep(20);
+			} catch (InterruptedException e) {
+				
+			}
+		}
+		
+		robot.rDrive.arcadeDrive(0, 0);
+		robot.rightMotors.setInverted(true);
+	}
+	
 	
 	/*
 	 * BEGIN AUTON MODE DECLARATIONS
@@ -69,15 +106,19 @@ public class AutonomousManager {
 			
 			Path p = getPathFromFile("/home/lvuser/breachLowBarAndShoot.txt");
 			
+			robot.navX.zeroYaw();
+			
 			if (!robot.arm.isArmEnabled()) {
 				robot.arm.executeArmHomingSequence();
-				while (!robot.arm.isArmEnabled()) {
-					try { Thread.sleep(20); } catch (Exception e) {}
-				}
+				while (!robot.arm.isArmEnabled()) {try { Thread.sleep(20); } catch (Exception e) {}}
 			}
 			
 			RobovikingDriveTrainProfileDriver mp = new RobovikingDriveTrainProfileDriver(robot.leftMotors,robot.rightMotors, p);
 			mp.followPath();
+			
+			while (!mp.isDone()) {try { Thread.sleep(20); } catch (Exception e) {}}
+			
+			rotateDegrees(180, false);
 			
 		}
 
