@@ -161,7 +161,7 @@ public class PuncherArm {
 						else {						 // otherwise, unlock and wait for a bit before proceeding to rotate
 							armLocker.set(false);
 							armLocked = false;
-							sleepTime = 250;
+							sleepTime = 500;
 							step +=1;
 						}
 						break;
@@ -185,12 +185,12 @@ public class PuncherArm {
 						break;
 					case 11:
 						if (!armProfile.isMPRunning()) step += 1;		// if we're done moving, proceed to lock
-						sleepTime = 100;
+						sleepTime = 500;
 						break;
 					case 12:
 						armLocker.set(true);
 						armLocked = true;
-						sleepTime = 250;
+						sleepTime = 500;
 						step = 0;
 						break;
 					default: sleepTime = 50; break;

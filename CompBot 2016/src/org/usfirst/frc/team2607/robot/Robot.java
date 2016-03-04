@@ -26,6 +26,7 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.Solenoid;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -48,7 +49,7 @@ public class Robot extends IterativeRobot {
 	
 	AutonomousEngine autoEngine;
 	Thread autoThread = null;
-	SimpleTableServer dataTable;
+//	SimpleTableServer dataTable;
 	
 	private double moveVal , rotateVal ;
 	private boolean armInTestFlag, armOneShot;
@@ -83,12 +84,13 @@ public class Robot extends IterativeRobot {
 
     	autoEngine = new AutonomousEngine(this); 
     	autoEngine.loadSavedMode();
-
+/*
     	try {
     		dataTable = new SimpleTableServer();
     	} catch (Exception e) {
     		dataTable = null;
     	}
+*/    	
     	// for tuning....webserver to view PID logs
     	Server server = new Server(5801);
         ServerConnector connector = new ServerConnector(server);
@@ -162,17 +164,18 @@ public class Robot extends IterativeRobot {
     
     int counter = 0, msgCount = 0;
     public void consoleMessage() {
-    	
+    /*	
     	if (counter >= 25 && dataTable != null) {
     		dataTable.put("ArmPosition", arm.getArmPosition());
     	}
-    	
+    */	   	
     	if(++counter >= 50){
     		msgCount += 1;
     		System.out.println(msgCount + ": Shooter Enabled: " + arm.isShooterEnabled() + "  Shooter Cocked: " + arm.isShooterCocked() 
     							+ "Shooter Eye: " + arm.getShooterEye());
     		System.out.println(msgCount + ": Arm Eye: " + arm.getArmLimiter() + " Arm Enabled: " + arm.isArmEnabled()
     							+ " Arm Down: " + arm.isArmDown() + "\n");
+    		SmartDashboard.putNumber("Arm Position", arm.getArmPosition());
     		counter = 0;
     	}    	
     }
@@ -180,7 +183,7 @@ public class Robot extends IterativeRobot {
     public void teleopPeriodic() {
 
     	consoleMessage();
-    	
+
     	moveVal = -( dController.getRawAxisWithDeadzone(RobovikingStick.xBoxLeftStickY) );
     	rotateVal = - (dController.getRawAxisWithDeadzone(RobovikingStick.xBoxRightStickX));
     	

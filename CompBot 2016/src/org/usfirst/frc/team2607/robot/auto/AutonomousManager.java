@@ -140,7 +140,8 @@ public class AutonomousManager {
 			}
 			robot.arm.rockAndRoll(0);
 			
-			robot.arm.rotateArmToPosition(-45.69);
+//			robot.arm.rotateArmToPosition(-45.69);
+			robot.arm.executeCheckAndRotate(-45.69);
 			rotateDegrees(-130, false);
 			
 			while (!robot.arm.isArmWaiting()) {try { Thread.sleep(20); } catch (Exception e) {}}
