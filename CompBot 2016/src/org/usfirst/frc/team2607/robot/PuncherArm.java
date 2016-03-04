@@ -14,11 +14,11 @@ public class PuncherArm {
 	
 	private CANTalon punchWinder , armRotator , rollerz;
 	private RobovikingSRXProfileDriver armProfile;
-	private Solenoid punchLock , santaClaw;
+	private Solenoid punchLock , santaClaw, armLocker;
 	private DigitalInput armLimiter , shooterCocked;
 	private final double armRotatorMaxSpeed = 18.0;  // cim rotations per second, for motion profiles
 	private AutoWinder winderThread;
-	private boolean shooterEnabled, armEnabled;
+	private boolean shooterEnabled, armEnabled, armLocked;
 	
 	private class AutoWinder extends Thread {
 
@@ -134,6 +134,14 @@ public class PuncherArm {
 		}
 	}
 	
+	private class ArmLockerThread extends Thread {
+
+		@Override
+		public void run() {
+			
+		}
+		 
+	}
 	
 	private class ArmHomingThread extends Thread {
 		// this thread can be started on operator command 
@@ -181,7 +189,10 @@ public class PuncherArm {
 
 		punchLock = new Solenoid(1,Constants.puncherLock);
 		santaClaw = new Solenoid(1,Constants.clawOpener);
-			
+		armLocker = new Solenoid(1,Constants.armLocker);
+		
+		armLocked = false;
+		
 		punchWinder.setFeedbackDevice(FeedbackDevice.CtreMagEncoder_Relative);
 		punchWinder.enableBrakeMode(true);
 		punchWinder.reverseSensor(true);

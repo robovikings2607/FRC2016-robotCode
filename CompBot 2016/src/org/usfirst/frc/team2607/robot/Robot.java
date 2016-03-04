@@ -124,7 +124,7 @@ public class Robot extends IterativeRobot {
     	rightMotors.log.enableLogging(true);
     	
     	autoThread = new Thread(autoEngine);
-    	autoEngine.setMode(2);
+//    	autoEngine.setMode(2);
     	autoThread.start(); //JUST FOR TESTING
     }
 
@@ -144,6 +144,10 @@ public class Robot extends IterativeRobot {
     	
     	leftMotors.log.enableLogging(false);
     	rightMotors.log.enableLogging(false);
+    	
+    	if (dController.getButtonPressedOneShot(RobovikingStick.xBoxButtonStart)) {
+    		autoEngine.selectMode();
+    	}
     }
 
 	@Override
@@ -241,6 +245,13 @@ public class Robot extends IterativeRobot {
 					if (!armOneShot && arm.isArmEnabled() && arm.isArmWaiting() && armPosIndex < (Constants.armPositions.length - 1)) { 
 						armPosIndex += 1;
 						arm.rotateArmToPosition(Constants.armPositions[armPosIndex]); //arm.rotateArmToPosition(-45.69); // arm.rotateArmXDegrees(-47);
+					}
+					armOneShot = true;
+					break;
+				case 90:
+					if (!armOneShot && arm.isArmEnabled() && arm.isArmWaiting()) {
+						armPosIndex = 1;
+						arm.rotateArmToPosition(Constants.armPositions[armPosIndex]);
 					}
 					armOneShot = true;
 					break;

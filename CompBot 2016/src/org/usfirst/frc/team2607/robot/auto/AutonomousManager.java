@@ -115,7 +115,8 @@ public class AutonomousManager {
 			
 			if (!robot.arm.isArmEnabled()) {
 				robot.arm.executeArmHomingSequence();
-				while (!robot.arm.isArmEnabled()) {try { Thread.sleep(20); } catch (Exception e) {}}
+				try {Thread.sleep(1500);} catch (Exception e) {}
+//				while (!robot.arm.isArmEnabled()) {try { Thread.sleep(20); } catch (Exception e) {}}
 			}
 			
 			RobovikingDriveTrainProfileDriver mp = new RobovikingDriveTrainProfileDriver(robot.leftMotors,robot.rightMotors, p);
