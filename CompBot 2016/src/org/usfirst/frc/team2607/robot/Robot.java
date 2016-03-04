@@ -135,8 +135,8 @@ public class Robot extends IterativeRobot {
     }
     
     public void disabledPeriodic() {
-    	// arm.stopWindingSequence();  // don't stop the winding sequence in disabled; let it finish when we re-enable
-    								   // since that is normal match behavior
+    	
+    	arm.handleWinderInDisabled();
     	arm.resetArm();
     	arm.checkArmEncoderPresent();
     	
@@ -244,21 +244,24 @@ public class Robot extends IterativeRobot {
 				case 0:
 					if (!armOneShot && arm.isArmEnabled() && arm.isArmWaiting() && armPosIndex < (Constants.armPositions.length - 1)) { 
 						armPosIndex += 1;
-						arm.rotateArmToPosition(Constants.armPositions[armPosIndex]); //arm.rotateArmToPosition(-45.69); // arm.rotateArmXDegrees(-47);
+						//arm.rotateArmToPosition(Constants.armPositions[armPosIndex]); //arm.rotateArmToPosition(-45.69); // arm.rotateArmXDegrees(-47);
+						arm.executeCheckAndRotate(Constants.armPositions[armPosIndex]);
 					}
 					armOneShot = true;
 					break;
 				case 90:
 					if (!armOneShot && arm.isArmEnabled() && arm.isArmWaiting()) {
 						armPosIndex = 1;
-						arm.rotateArmToPosition(Constants.armPositions[armPosIndex]);
+						//arm.rotateArmToPosition(Constants.armPositions[armPosIndex]);
+						arm.executeArmLocking();
 					}
 					armOneShot = true;
 					break;
 				case 180:
 					if (!armOneShot && arm.isArmEnabled() && arm.isArmWaiting() && (armPosIndex > 0)) {
 						armPosIndex -= 1;
-						arm.rotateArmToPosition(Constants.armPositions[armPosIndex]);		//arm.rotateArmXDegrees(47);
+						//arm.rotateArmToPosition(Constants.armPositions[armPosIndex]);		//arm.rotateArmXDegrees(47);
+						arm.executeCheckAndRotate(Constants.armPositions[armPosIndex]);
 					}
 					armOneShot = true;
 					break;

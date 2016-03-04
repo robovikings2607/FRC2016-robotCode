@@ -18,7 +18,8 @@ public class PuncherArm {
 	private DigitalInput armLimiter , shooterCocked;
 	private final double armRotatorMaxSpeed = 18.0;  // cim rotations per second, for motion profiles
 	private AutoWinder winderThread;
-	private boolean shooterEnabled, armEnabled, armLocked;
+	private ArmPositioningThread armPosThread;
+	private boolean shooterEnabled, armEnabled;
 	
 	private class AutoWinder extends Thread {
 
@@ -92,6 +93,14 @@ public class PuncherArm {
 			if (step == 0 && !shooterEnabled) step = 10;
 		}
 		
+		public void handleRobotDisable() {
+			if (shooterEnabled && (step > 0 && step < 3)) {
+				System.out.println("Aborting step " + step + ", moving to step 3, shooterEnabled: " + shooterEnabled);
+				punchWinder.set(0);
+				step = 3;
+			}
+		}	
+		
 		public void abortSequence() {
 			if (step != 0) {
 				System.out.println("Aborting winder sequence from step " + step + ", shooterEnabled: " + shooterEnabled);
@@ -99,6 +108,7 @@ public class PuncherArm {
 			}
 			punchWinder.set(0);
 		}	
+
 	}
 	
 	private class PowerLogger extends Thread {
@@ -134,13 +144,93 @@ public class PuncherArm {
 		}
 	}
 	
-	private class ArmLockerThread extends Thread {
+	private class ArmPositioningThread extends Thread {
 
+		private final double armLockPos = -11.27;
+		private boolean armLocked = false;
+		private int step = 0;
+		private double targetPosition;
+		
 		@Override
 		public void run() {
-			
+			while (true) {
+				int sleepTime = 50;
+				switch (step) {
+					case 1:				
+						if (!armLocked) step += 1;    //if arm isn't locked, proceed to rotation step
+						else {						 // otherwise, unlock and wait for a bit before proceeding to rotate
+							armLocker.set(false);
+							armLocked = false;
+							sleepTime = 250;
+							step +=1;
+						}
+						break;
+					case 2: 
+						doRotationProfile();		// move to the target position
+						sleepTime = 50;
+						step += 1;
+						break;
+					case 3:
+						if (!armProfile.isMPRunning()) step = 0;
+						sleepTime = 20;
+						break;
+					// "check and move" sequence ends here
+					case 10:						// start of locking sequence  
+						if (armLocked) step = 0;
+						else {
+							doRotationProfile();		// move to the target position (locking pos in this case)
+							sleepTime = 100;
+							step += 1;
+						}
+						break;
+					case 11:
+						if (!armProfile.isMPRunning()) step += 1;		// if we're done moving, proceed to lock
+						sleepTime = 100;
+						break;
+					case 12:
+						armLocker.set(true);
+						armLocked = true;
+						sleepTime = 250;
+						step = 0;
+						break;
+					default: sleepTime = 50; break;
+				}
+				try {Thread.sleep(sleepTime);} catch (Exception e) {}
+				
+			}
+
 		}
-		 
+
+		private void doRotationProfile() {
+			// only called by state machine, when we know arm is unlocked;  but check anyway
+			if (armLocked) return;
+			//		- distance to travel is (-(currentPos - targetPos))
+			double distance = -((armRotator.getPosition() - targetPosition));
+			//		- distance and maxspeed must have same sign for profile generation to work
+			double direction = (distance) / Math.abs(distance);
+			double maxSpeed = direction * armRotatorMaxSpeed;
+			if (!armProfile.isMPRunning()) {
+				armProfile.pushAndStartMP(new SRXProfile(maxSpeed, armRotator.getPosition(), distance, 250, 250, 10));
+			}
+		}
+
+		public void checkAndRotateArm(double targetPos) {
+			if (armEnabled && step == 0) {
+				targetPosition = targetPos;
+				step = 1;
+			}
+		}
+		
+		public void lockArm() {
+			if (armEnabled && step == 0) {
+				targetPosition = armLockPos;
+				step = 10;
+			}
+		}
+		
+		public int getStep() {
+			return step;
+		}
 	}
 	
 	private class ArmHomingThread extends Thread {
@@ -148,7 +238,8 @@ public class PuncherArm {
 		// when the arm needs to be homed (armEnabled == false)
 		//		it's intended to be run anonymously (e.g. new ArmHomingThread().start()) since it just runs and exits
 		@Override
-		public void run() {				
+		public void run() {
+			if (armEnabled) return;
 			System.out.println("Starting ArmHoming Thread...");
 			armRotator.changeControlMode(TalonControlMode.PercentVbus); 
 			armRotator.setPosition(0);
@@ -187,11 +278,12 @@ public class PuncherArm {
 		winderThread = new AutoWinder();
 		winderThread.start();
 
+		armPosThread = new ArmPositioningThread();
+		armPosThread.start();
+		
 		punchLock = new Solenoid(1,Constants.puncherLock);
 		santaClaw = new Solenoid(1,Constants.clawOpener);
 		armLocker = new Solenoid(1,Constants.armLocker);
-		
-		armLocked = false;
 		
 		punchWinder.setFeedbackDevice(FeedbackDevice.CtreMagEncoder_Relative);
 		punchWinder.enableBrakeMode(true);
@@ -236,6 +328,10 @@ public class PuncherArm {
 		if (winderThread != null) winderThread.abortSequence();
 	}
 
+	public void handleWinderInDisabled() {
+		if (winderThread != null) winderThread.handleRobotDisable();
+	}
+	
 	// positive degToRotate lowers the arm
 	// negative degToRotate raises the arm
 /*
@@ -256,7 +352,7 @@ public class PuncherArm {
 	//		- negative/reverse travel raises arm;  positive/forward travel lowers arm
 	// ?update the below to check if a profile is currently running, and safely interrupt it via the new driver if it is,
 	// before sending a new profile
-	
+/*	
 	public void rotateArmToPosition(double targetPosition) {
 		//		- distance to travel is (-(currentPos - targetPos))
 		double distance = -((armRotator.getPosition() - targetPosition));
@@ -267,7 +363,7 @@ public class PuncherArm {
 			armProfile.pushAndStartMP(new SRXProfile(maxSpeed, armRotator.getPosition(), distance, 250, 250, 10));
 		}
 	}
-
+*/
 	public void rockAndRoll(double jubbs) {
 		rollerz.set(jubbs);
 	}
@@ -329,7 +425,7 @@ public class PuncherArm {
 	}
 	
 	public boolean isArmWaiting() {
-		return !armProfile.isMPRunning();
+		return (!armProfile.isMPRunning()) && (armPosThread.getStep() == 0);
 	}
 	
 	public void executeWinderHomingSequence(){
@@ -349,4 +445,11 @@ public class PuncherArm {
 		winderThread.startFromCockedPosition();
 	}
 	
+	public void executeCheckAndRotate(double targetPos) {
+		armPosThread.checkAndRotateArm(targetPos);
+	}
+	
+	public void executeArmLocking() {
+		armPosThread.lockArm();
+	}
 }

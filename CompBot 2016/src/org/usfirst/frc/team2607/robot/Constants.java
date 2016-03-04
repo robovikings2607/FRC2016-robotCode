@@ -43,7 +43,7 @@ public class Constants {
 	// armPositions are in CIM motor rotations, not in arm degrees
 	// rotations = (350.0 * degrees) / 360.0
 	// 0.0 is arm down;  all other positions are negative, since reverse motor drives the arm up
-	public static double[] armPositions = {0.0, -11.27, -43.0, -45.69, -68.535};
+	public static double[] armPositions = {0.0, -43.0, -45.69, -68.535};
 	
 	
 	public static int[] leftDeviceIDs = { leftMotor1 , leftMotor2 , leftMotor3 , leftEncChannelA , leftEncChannelB };
