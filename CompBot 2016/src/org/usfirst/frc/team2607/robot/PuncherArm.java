@@ -161,7 +161,7 @@ public class PuncherArm {
 						else {						 // otherwise, unlock and wait for a bit before proceeding to rotate
 							armLocker.set(false);
 							armLocked = false;
-							sleepTime = 500;
+							sleepTime = 1000;
 							step +=1;
 						}
 						break;
@@ -190,7 +190,7 @@ public class PuncherArm {
 					case 12:
 						armLocker.set(true);
 						armLocked = true;
-						sleepTime = 500;
+						sleepTime = 1000;
 						step = 0;
 						break;
 					default: sleepTime = 50; break;
@@ -215,6 +215,7 @@ public class PuncherArm {
 		}
 
 		public void checkAndRotateArm(double targetPos) {
+			System.out.println("checkAndRotate...enabled " + armEnabled + " step: " + step);
 			if (armEnabled && step == 0) {
 				targetPosition = targetPos;
 				step = 1;
@@ -394,6 +395,7 @@ public class PuncherArm {
 
 		// just interrupt any existing MP;  don't ever reset position
 		armProfile.interruptMP();
+		armLocker.set(false);
 	}
 	
 	public double getArmPosition() {

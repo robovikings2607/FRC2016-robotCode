@@ -52,6 +52,10 @@ public class AutonomousEngine implements Runnable {
 	
 	}
 	
+	public int getMode() {
+		return mode;
+	}
+	
 	public void saveMode() {
 		try {
 			PrintWriter p = new PrintWriter(new File("/home/lvuser/autoMode.txt"));

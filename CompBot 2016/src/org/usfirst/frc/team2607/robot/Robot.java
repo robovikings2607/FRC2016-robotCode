@@ -127,6 +127,7 @@ public class Robot extends IterativeRobot {
     	
     	autoThread = new Thread(autoEngine);
 //    	autoEngine.setMode(2);
+    	if (autoEngine.getMode() == 2 || autoEngine.getMode() == 3) armPosIndex = 2;
     	autoThread.start(); //JUST FOR TESTING
     }
 
@@ -245,9 +246,11 @@ public class Robot extends IterativeRobot {
     		
     		switch (oController.getPOV(0)) {
 				case 0:
+					System.out.println("case 0 armPosIndex " + armPosIndex);
 					if (!armOneShot && arm.isArmEnabled() && arm.isArmWaiting() && armPosIndex < (Constants.armPositions.length - 1)) { 
 						armPosIndex += 1;
 						//arm.rotateArmToPosition(Constants.armPositions[armPosIndex]); //arm.rotateArmToPosition(-45.69); // arm.rotateArmXDegrees(-47);
+						System.out.println("Trying to raise arm to armPos " + armPosIndex);
 						arm.executeCheckAndRotate(Constants.armPositions[armPosIndex]);
 					}
 					armOneShot = true;
@@ -261,9 +264,11 @@ public class Robot extends IterativeRobot {
 					armOneShot = true;
 					break;
 				case 180:
+					System.out.println("case 180 armPosIndex " + armPosIndex);
 					if (!armOneShot && arm.isArmEnabled() && arm.isArmWaiting() && (armPosIndex > 0)) {
 						armPosIndex -= 1;
 						//arm.rotateArmToPosition(Constants.armPositions[armPosIndex]);		//arm.rotateArmXDegrees(47);
+						System.out.println("Trying to lower arm to armPos " + armPosIndex);
 						arm.executeCheckAndRotate(Constants.armPositions[armPosIndex]);
 					}
 					armOneShot = true;

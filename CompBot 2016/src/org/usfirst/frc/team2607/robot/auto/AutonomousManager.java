@@ -16,13 +16,15 @@ public class AutonomousManager {
 	
 	Robot robot;
 	public ArrayList<AutonomousMode> modes = new ArrayList<AutonomousMode>();
-	
+
 	AutonomousManager(Robot robot){
 		this.robot = robot;
 		
 		modes.add(new DoNothingFailsafe());
 		modes.add(new DoNothing());
+		modes.add(new BreachLowBar(robot));
 		modes.add(new BreachLowBarAndShoot(robot));
+		modes.add(new TestAutonMode(robot));
 	}
 	
 	public AutonomousMode getModeByName (String name){
@@ -55,12 +57,17 @@ public class AutonomousManager {
 		if(zeroFirst) navx.zeroYaw();
 		robot.rightMotors.setInverted(false); //Set to TRUE when done
 		
-		double kP = 0.02;
-		double maxTurn = 0.8;
-		double tolerance = 2.5;
+		long timeoutMilli = 3000;
+		long startTime = System.currentTimeMillis();
+		
+		double kP = 0.05;
+		double maxTurn = 0.7;
+		double tolerance = 0.5;
 		robot.shifter.set(false);
 		
 		while(true) {
+			if (System.currentTimeMillis() > (startTime + timeoutMilli)) break;
+			
 			double error = navx.getYaw() - degrees;
 			System.out.println("TurnAngleError: " + error);
 			
@@ -97,10 +104,54 @@ public class AutonomousManager {
 	 * You must add the mode to the array once you define its class
 	 */
 	
+	public class TestAutonMode extends AutonomousMode {
+
+		TestAutonMode(Robot r) {
+			super(r);
+			// TODO Auto-generated constructor stub
+		}
+
+		@Override
+		public void run() {
+			robot.navX.zeroYaw();
+
+			rotateDegrees(-130, false);
+		}
+
+		@Override
+		public String getName() {
+			return "TestAutonMode";
+		}
+		
+	}
+	
 
 	public class BreachLowBarAndShoot extends AutonomousMode {
 
 		BreachLowBarAndShoot(Robot r) {
+			super(r);
+			// TODO Auto-generated constructor stub
+		}
+
+		@Override
+		public void run() {
+			
+			new BreachLowBar(robot).run();
+
+			robot.arm.shoot();		// go ahead and shoot	
+			
+		}
+
+		@Override
+		public String getName() {
+			return "BreachLowAndShoot";
+		}
+		
+	}
+	
+	public class BreachLowBar extends AutonomousMode {
+
+		BreachLowBar(Robot r) {
 			super(r);
 			// TODO Auto-generated constructor stub
 		}
@@ -142,7 +193,7 @@ public class AutonomousManager {
 			
 //			robot.arm.rotateArmToPosition(-45.69);
 			robot.arm.executeCheckAndRotate(-45.69);
-			rotateDegrees(-130, false);
+			rotateDegrees(-126.6, false);
 			
 			while (!robot.arm.isArmWaiting()) {try { Thread.sleep(20); } catch (Exception e) {}}
 			
@@ -151,13 +202,13 @@ public class AutonomousManager {
 				Thread.sleep(500);
 			} catch (InterruptedException e) {}
 
-			robot.arm.shoot();		// go ahead and shoot	
+			//robot.arm.shoot();		// go ahead and shoot	
 			
 		}
 
 		@Override
 		public String getName() {
-			return "BreachBarLow";
+			return "BreachLowBar";
 		}
 		
 	}
