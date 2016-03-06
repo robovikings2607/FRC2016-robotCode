@@ -52,7 +52,7 @@ public class Robot extends IterativeRobot {
 //	SimpleTableServer dataTable;
 	
 	private double moveVal , rotateVal ;
-	private boolean armInTestFlag, armOneShot;
+	private boolean armInTestFlag, armOneShot, armLockOneShot = false;
 	private int armPosIndex = 0;						// index into array of arm positions
 		
 	/**
@@ -205,9 +205,6 @@ public class Robot extends IterativeRobot {
     		oController.setRumble(Joystick.RumbleType.kRightRumble, 0);
     	}
     	
-    	if(oController.getTriggerPressed(RobovikingStick.xBoxLeftTrigger)) {  // left trigger = axis 2
-    		arm.lock();
-    	}
     	
     	// Homing sequence for shooter
     	if (oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonStart) && !arm.isShooterEnabled()) {
@@ -243,32 +240,50 @@ public class Robot extends IterativeRobot {
     	arm.checkArmEncoderPresent();
 
     	if(!armInTestFlag){
+
+    		if(oController.getTriggerPressed(RobovikingStick.xBoxLeftTrigger)) {  // left trigger = axis 2
+        		if (!armLockOneShot && arm.isArmEnabled() && arm.isArmWaiting() && armPosIndex != -1) {
+        			armPosIndex = -1;
+        			arm.executeArmLocking();
+        			armLockOneShot = true;
+        		}
+        	} else {
+        		armLockOneShot = false;
+        	}
     		
     		switch (oController.getPOV(0)) {
-				case 0:
-					System.out.println("case 0 armPosIndex " + armPosIndex);
-					if (!armOneShot && arm.isArmEnabled() && arm.isArmWaiting() && armPosIndex < (Constants.armPositions.length - 1)) { 
-						armPosIndex += 1;
+				case 0:		// highest position
+					if (!armOneShot && arm.isArmEnabled() && arm.isArmWaiting() && armPosIndex != 3)  { 
+						armPosIndex = 3;
 						//arm.rotateArmToPosition(Constants.armPositions[armPosIndex]); //arm.rotateArmToPosition(-45.69); // arm.rotateArmXDegrees(-47);
-						System.out.println("Trying to raise arm to armPos " + armPosIndex);
+						System.out.println("Trying to move arm to position 3 : " + armPosIndex);
 						arm.executeCheckAndRotate(Constants.armPositions[armPosIndex]);
 					}
 					armOneShot = true;
 					break;
-				case 90:
-					if (!armOneShot && arm.isArmEnabled() && arm.isArmWaiting()) {
+				case 90: 	// outerworks position (slightly lower than normal auton shot)
+					if (!armOneShot && arm.isArmEnabled() && arm.isArmWaiting() && armPosIndex != 1) {
 						armPosIndex = 1;
 						//arm.rotateArmToPosition(Constants.armPositions[armPosIndex]);
-						arm.executeArmLocking();
+						System.out.println("Trying to move arm to position 1 : " + armPosIndex);
+						arm.executeCheckAndRotate(Constants.armPositions[armPosIndex]);
 					}
 					armOneShot = true;
 					break;
-				case 180:
-					System.out.println("case 180 armPosIndex " + armPosIndex);
-					if (!armOneShot && arm.isArmEnabled() && arm.isArmWaiting() && (armPosIndex > 0)) {
-						armPosIndex -= 1;
+				case 180:	// full down
+					if (!armOneShot && arm.isArmEnabled() && arm.isArmWaiting() && armPosIndex != 0) {
+						armPosIndex = 0;
 						//arm.rotateArmToPosition(Constants.armPositions[armPosIndex]);		//arm.rotateArmXDegrees(47);
-						System.out.println("Trying to lower arm to armPos " + armPosIndex);
+						System.out.println("Trying to move arm to position 0 : " + armPosIndex);
+						arm.executeCheckAndRotate(Constants.armPositions[armPosIndex]);
+					}
+					armOneShot = true;
+					break;
+				case 270:	// normal shot (slightly higher than outerworks)
+					if (!armOneShot && arm.isArmEnabled() && arm.isArmWaiting() && armPosIndex != 2) {
+						armPosIndex = 2;
+						//arm.rotateArmToPosition(Constants.armPositions[armPosIndex]);		//arm.rotateArmXDegrees(47);
+						System.out.println("Trying to move arm to position 2 : " + armPosIndex);
 						arm.executeCheckAndRotate(Constants.armPositions[armPosIndex]);
 					}
 					armOneShot = true;
