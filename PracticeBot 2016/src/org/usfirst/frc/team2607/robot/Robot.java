@@ -18,7 +18,7 @@ public class Robot extends IterativeRobot {
 	RobovikingStick bearTech;
 	RobotDrive mindOfFinn;
 	PowerLogger loggerTron;
-	double driverYIn, driverXIn;
+	double moveVal , rotateVal;
 	
     /**
      * This function is run when the robot is first started up and should be
@@ -26,9 +26,9 @@ public class Robot extends IterativeRobot {
      */
     public void robotInit() {
     	
-    	leftMotors = new Transmission(1,2,3 , false);
-    	rightMotors = new Transmission(6,4,5 , false);
-    	bearTech = new RobovikingStick(1);
+    	rightMotors = new Transmission(1,2 , false);
+    	leftMotors = new Transmission(3,4 , false);
+    	bearTech = new RobovikingStick(0);
     	mindOfFinn = new RobotDrive(leftMotors , rightMotors);
     	loggerTron = null;
     }
@@ -71,18 +71,19 @@ public class Robot extends IterativeRobot {
      * This function is called periodically during operator control
      */
     public void teleopPeriodic() {
-        
-    	driverYIn = -bearTech.getY();
-    	driverXIn = -bearTech.getRawAxis(4);
-    	mindOfFinn.arcadeDrive( driverYIn , driverXIn);
+    	
+    	moveVal = ( bearTech.getRawAxisWithDeadzone(RobovikingStick.xBoxLeftStickY) );
+    	rotateVal =  ( bearTech.getRawAxisWithDeadzone(RobovikingStick.xBoxRightStickX) );
+    	
+    	mindOfFinn.arcadeDrive( moveVal , rotateVal);
     }
     
     public double getDriverYIn() {
-    	return driverYIn;
+    	return moveVal;
     }
     
     public double getDriverXIn() {
-    	return driverXIn;
+    	return rotateVal;
     }
 
     public double getLeftCmd() {
