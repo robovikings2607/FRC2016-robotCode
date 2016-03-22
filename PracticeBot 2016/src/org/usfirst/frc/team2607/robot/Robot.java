@@ -1,9 +1,11 @@
 
 package org.usfirst.frc.team2607.robot;
 
+import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.RobotDrive;
+import edu.wpi.first.wpilibj.Solenoid;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -15,6 +17,8 @@ import edu.wpi.first.wpilibj.RobotDrive;
 public class Robot extends IterativeRobot {
 	
 	Transmission leftMotors , rightMotors;
+	Solenoid shifterOne , shifterTwo;
+	Compressor compressor;
 	RobovikingStick bearTech;
 	RobotDrive mindOfFinn;
 	PowerLogger loggerTron;
@@ -30,7 +34,13 @@ public class Robot extends IterativeRobot {
     	leftMotors = new Transmission(3,4 , false);
     	bearTech = new RobovikingStick(0);
     	mindOfFinn = new RobotDrive(leftMotors , rightMotors);
+    	
+    	compressor = new Compressor(1);
+    	shifterOne = new Solenoid( 1 , 0 );
+    	shifterTwo = new Solenoid( 1 , 1 );
     	loggerTron = null;
+    	
+    	compressor.start();
     }
     
 	@Override
@@ -75,6 +85,8 @@ public class Robot extends IterativeRobot {
     	moveVal = ( bearTech.getRawAxisWithDeadzone(RobovikingStick.xBoxLeftStickY) );
     	rotateVal =  ( bearTech.getRawAxisWithDeadzone(RobovikingStick.xBoxRightStickX) );
     	
+    	shifterOne.set(bearTech.getToggleButton(RobovikingStick.xBoxButtonRightStick));
+    	shifterTwo.set(bearTech.getToggleButton(RobovikingStick.xBoxButtonRightStick));
     	mindOfFinn.arcadeDrive( moveVal , rotateVal);
     }
     
