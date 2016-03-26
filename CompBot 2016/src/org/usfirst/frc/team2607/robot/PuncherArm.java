@@ -2,6 +2,7 @@ package org.usfirst.frc.team2607.robot;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.Solenoid;
@@ -23,7 +24,8 @@ public class PuncherArm {
 	
 	private class AutoWinder extends Thread {
 
-		private int step = 0;
+		//private int step = 0;
+		private AtomicInteger step = new AtomicInteger(0);
 		
 		@Override
 		public void run() {
@@ -31,16 +33,19 @@ public class PuncherArm {
 			System.out.println("Starting AutoWinder thread...");
 			while (true) {
 				try {
-					switch (step) {
+					switch (step.get()) {
 						case 1:			// starting from the cocked position...
 							punchWinder.setPosition(0);
 							shoot();	// release lock
 							sleepTime = 250;
-							step += 1;
+							step.compareAndSet(1, 2);			//step += 1;
 							break;
 						case 2:		
 							punchWinder.set(.6); // move forward to grab
-							if (punchWinder.getPosition() >= 100) step +=1;
+							if (punchWinder.getPosition() >= 100) {
+								punchWinder.set(0);
+								step.compareAndSet(2, 3);		//step +=1;
+							}
 							sleepTime = 10;
 							break;
 						case 3: 
@@ -48,17 +53,20 @@ public class PuncherArm {
 							lock();				// close the lock
 							punchWinder.setPosition(0);
 							sleepTime = 250;	// wait .25 secs
-							step += 1;
+							step.compareAndSet(3, 4);			//step += 1;
 							break;
 						case 4: 
 							punchWinder.set(-1.0);	// draw back
 							sleepTime = 10;
-							if (punchWinder.getPosition() <= -100 || !shooterCocked.get()) step += 1; 
+							if (punchWinder.getPosition() <= -100 || !shooterCocked.get()) {
+								punchWinder.set(0);
+								step.compareAndSet(4, 5);		//step += 1;
+							}
 							break;
 						case 5:
 							punchWinder.set(0);		// stop, sequence complete
 							sleepTime = 100;
-							step = 0;
+							step.set(0); 
 							break;
 						// auto shoot & re-cock sequence stops here, below is zero'ing sequence
 						case 10:					// move to home position
@@ -66,13 +74,16 @@ public class PuncherArm {
 							sleepTime = 10;
 							punchWinder.setPosition(0);
 							punchWinder.set(-.3);
-							if (!shooterCocked.get() || punchWinder.getPosition() <= -100) step += 1;
+							if (!shooterCocked.get() || punchWinder.getPosition() <= -100) {
+								punchWinder.set(0);
+								step.compareAndSet(10, 11);				//step += 1;
+							}
 							break;
 						case 11:
 							punchWinder.set(0);
 							sleepTime = 100;
 							shooterEnabled = true;
-							step = 0;
+							step.set(0);
 							break;
 						default: sleepTime = 100; break;
 					}
@@ -82,117 +93,101 @@ public class PuncherArm {
 		}
 		
 		public void startFromUncockedPosition() {
-			if (step == 0 && shooterEnabled) step = 3;
+			if (shooterEnabled) step.compareAndSet(0,3);
 		}
 		
 		public void startFromCockedPosition() {
-			if (step == 0 && shooterEnabled) step = 1;
+			if (shooterEnabled) step.compareAndSet(0, 1);
 		}
 		
 		public void goToHomePosition() {
-			if (step == 0 && !shooterEnabled) step = 10;
+			if (!shooterEnabled) step.compareAndSet(0, 10);
 		}
 		
 		public void handleRobotDisable() {
-			if (shooterEnabled && (step > 0 && step < 3)) {
-				System.out.println("Aborting step " + step + ", moving to step 3, shooterEnabled: " + shooterEnabled);
+			int curStep = step.get();
+			if (shooterEnabled && (curStep > 0 && curStep < 3)) {
+				System.out.println("Aborting step " + curStep + ", moving to step 3, shooterEnabled: " + shooterEnabled);
 				punchWinder.set(0);
-				step = 3;
+				step.set(3); 
 			}
 		}	
 		
 		public void abortSequence() {
-			if (step != 0) {
-				System.out.println("Aborting winder sequence from step " + step + ", shooterEnabled: " + shooterEnabled);
-				step = 0;
-			}
+			System.out.println("Aborting winder sequence from step " + step.get() + ", shooterEnabled: " + shooterEnabled);
 			punchWinder.set(0);
+			step.set(0);
 		}	
 
 	}
-	
-	private class PowerLogger extends Thread {
-
-		private PrintWriter log;
-		private DriverStation ds;
-		@Override
-		public void run() {
-			int tick = 0;
-			while (true && log != null) {
-				if (ds.isEnabled()) tick = 0;
-				if (++tick < 2) {
-					log.println(System.currentTimeMillis() + "," +
-						ds.isEnabled() + "," + 
-						armRotator.getPosition() + "," +
-						armRotator.getSpeed() + "," +
-						armRotator.getBusVoltage() + "," + 
-						armRotator.getOutputVoltage() + "," +
-						armRotator.getOutputCurrent());
-					log.flush();
-				}
-				try {Thread.sleep(40);} catch (Exception e) {}
-			}
-		}
-
-		public PowerLogger() {
-			ds = DriverStation.getInstance();
-			try {
-				String s = "/home/lvuser/PuncherArm." + System.currentTimeMillis() + ".csv";
-				log = new PrintWriter(new File(s));
-				log.println("Time,Mode,Pos,Vel,VIn,VOut,AmpOut");
-			} catch (Exception e) { System.out.println("Can't start logging"); log = null;}
-		}
-	}
-	
+		
 	private class ArmPositioningThread extends Thread {
 
 		private final double armLockPos = -11.27;
-		private boolean armLocked = false;
-		private int step = 0;
-		private double targetPosition;
+		//private boolean armLocked = false;
+		//private int step = 0;
+		private AtomicInteger step = new AtomicInteger(0);
+		private double targetPosition, pendingTargetPosition;	// pendingTargetPosition is used to temporarily hold new
+																// target position when interrupting a running MP
 		
 		@Override
 		public void run() {
 			while (true) {
 				int sleepTime = 50;
-				switch (step) {
-					case 1:				
-						if (!armLocked) step += 1;    //if arm isn't locked, proceed to rotation step
+				switch (step.get()) {
+					case 1:					// start of "check and move" sequence
+						if (!armLocker.get()) step.compareAndSet(1, 2);	//step += 1;    //if arm isn't locked, proceed to rotation step
 						else {						 // otherwise, unlock and wait for a bit before proceeding to rotate
 							armLocker.set(false);
-							armLocked = false;
 							sleepTime = 1000;
-							step +=1;
+							step.compareAndSet(1, 2);		//step +=1;
 						}
 						break;
 					case 2: 
 						doRotationProfile();		// move to the target position
 						sleepTime = 50;
-						step += 1;
+						step.compareAndSet(2, 3);	//step += 1;
 						break;
 					case 3:
-						if (!armProfile.isMPRunning()) step = 0;
+						if (!armProfile.isMPRunning()) step.compareAndSet(3, 0);	//step = 0;
 						sleepTime = 20;
 						break;
 					// "check and move" sequence ends here
 					case 10:						// start of locking sequence  
-						if (armLocked) step = 0;
+						if (armLocker.get()) step.compareAndSet(10, 0);		// if arm already locked, goto wait step
 						else {
-							doRotationProfile();		// move to the target position (locking pos in this case)
+							//doRotationProfile();		// move to the target position (locking pos in this case) // no longer needed
+							// interrupt any running MP
+							armProfile.interruptMP();
 							sleepTime = 100;
-							step += 1;
+							step.compareAndSet(10, 11);	//step += 1;
 						}
 						break;
 					case 11:
-						if (!armProfile.isMPRunning()) step += 1;		// if we're done moving, proceed to lock
-						sleepTime = 500;
+						if (!armProfile.isMPRunning()) {
+							step.compareAndSet(11, 12);		//step += 1;		// if we're done moving, proceed to lock
+						}
+						sleepTime = 250;
 						break;
 					case 12:
 						armLocker.set(true);
-						armLocked = true;
 						sleepTime = 1000;
-						step = 0;
+						step.compareAndSet(12, 0);
 						break;
+					// locking sequence ends here
+					case 20:					// start of "interrupt, check and move" sequence; only start this when arm is already in motion
+						armProfile.interruptMP();	// interrupt the currently running profile
+						sleepTime = 50;
+						step.compareAndSet(20, 21);	//step += 1;
+						break;
+					case 21:					// wait for the armRotator talon to be ready for the next profile
+						if (!armProfile.isMPRunning()) {
+							targetPosition = pendingTargetPosition;
+							step.compareAndSet(21, 1);		// interrupt done, do check and move
+						}
+						sleepTime = 200;
+						break;
+						
 					default: sleepTime = 50; break;
 				}
 				try {Thread.sleep(sleepTime);} catch (Exception e) {}
@@ -202,8 +197,6 @@ public class PuncherArm {
 		}
 
 		private void doRotationProfile() {
-			// only called by state machine, when we know arm is unlocked;  but check anyway
-			if (armLocked) return;
 			//		- distance to travel is (-(currentPos - targetPos))
 			double distance = -((armRotator.getPosition() - targetPosition));
 			//		- distance and maxspeed must have same sign for profile generation to work
@@ -214,29 +207,40 @@ public class PuncherArm {
 			}
 		}
 
+		// if arm is waiting, do the "check and move" sequence
+		// if arm is rotating, do the "interrupt, check and move" sequence  
 		public void checkAndRotateArm(double targetPos) {
 			System.out.println("checkAndRotate...enabled " + armEnabled + " step: " + step);
-			if (armEnabled && step == 0) {
+			if (!armEnabled) return;
+			int curStep = step.get(); 
+			if (curStep == 0) {
 				targetPosition = targetPos;
-				step = 1;
+				step.set(1); 
+			} else {
+				pendingTargetPosition = targetPos;
+				step.set(20);
 			}
 		}
 		
 		public void lockArm() {
+			if (!armEnabled) return;
+			step.set(10);		// no need to rotate to lock position any more, just execute lock sequence
+			/*
 			if (armEnabled && step == 0) {
-				targetPosition = armLockPos;
+				targetPosition = armLockPos;	
 				step = 10;
 			}
+			*/
 		}
 		
 		public int getStep() {
-			return step;
+			return step.get();
 		}
+
 	}
 	
 	private class ArmHomingThread extends Thread {
-		// this thread can be started on operator command 
-		// when the arm needs to be homed (armEnabled == false)
+		// this thread will be started on operator command when the arm needs to be homed (armEnabled == false)
 		//		it's intended to be run anonymously (e.g. new ArmHomingThread().start()) since it just runs and exits
 		@Override
 		public void run() {
@@ -274,8 +278,8 @@ public class PuncherArm {
 		armLimiter = new DigitalInput(Constants.armLimiter);
 		shooterCocked = new DigitalInput(Constants.shooterCocked);
 
-		shooterEnabled = !shooterCocked.get();
-		armEnabled = !armLimiter.get();
+		shooterEnabled = !shooterCocked.get();		// photoeye reads false when made, i.e. when winder is fully retracted
+		armEnabled = !armLimiter.get();				// photoeye reads false when made, i.e. when arm is fully lowered
 		winderThread = new AutoWinder();
 		winderThread.start();
 
@@ -311,7 +315,7 @@ public class PuncherArm {
 	}
 	
 	public void lock() {
-		punchLock.set(false);
+		punchLock.set(false);				// engage the shooter lock
 	}
 	
 	public void shoot() {

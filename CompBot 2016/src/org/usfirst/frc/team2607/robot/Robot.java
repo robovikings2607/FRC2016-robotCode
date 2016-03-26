@@ -241,8 +241,10 @@ public class Robot extends IterativeRobot {
 
     	if(!armInTestFlag){
 
+    		// removed arm.isArmWaiting() check from all commands, to allow for interrupt
+    		
     		if(oController.getTriggerPressed(RobovikingStick.xBoxLeftTrigger)) {  // left trigger = axis 2
-        		if (!armLockOneShot && arm.isArmEnabled() && arm.isArmWaiting() && armPosIndex != -1) {
+        		if (!armLockOneShot && arm.isArmEnabled() && armPosIndex != -1) {
         			armPosIndex = -1;
         			arm.executeArmLocking();
         			armLockOneShot = true;
@@ -253,7 +255,7 @@ public class Robot extends IterativeRobot {
     		
     		switch (oController.getPOV(0)) {
 				case 0:		// highest position
-					if (!armOneShot && arm.isArmEnabled() && arm.isArmWaiting() && armPosIndex != 3)  { 
+					if (!armOneShot && arm.isArmEnabled() && armPosIndex != 3)  { 
 						armPosIndex = 3;
 						//arm.rotateArmToPosition(Constants.armPositions[armPosIndex]); //arm.rotateArmToPosition(-45.69); // arm.rotateArmXDegrees(-47);
 						System.out.println("Trying to move arm to position 3 : " + armPosIndex);
@@ -262,7 +264,7 @@ public class Robot extends IterativeRobot {
 					armOneShot = true;
 					break;
 				case 90: 	// outerworks position (slightly lower than normal auton shot)
-					if (!armOneShot && arm.isArmEnabled() && arm.isArmWaiting() && armPosIndex != 1) {
+					if (!armOneShot && arm.isArmEnabled() && armPosIndex != 1) {
 						armPosIndex = 1;
 						//arm.rotateArmToPosition(Constants.armPositions[armPosIndex]);
 						System.out.println("Trying to move arm to position 1 : " + armPosIndex);
@@ -271,7 +273,7 @@ public class Robot extends IterativeRobot {
 					armOneShot = true;
 					break;
 				case 180:	// full down
-					if (!armOneShot && arm.isArmEnabled() && arm.isArmWaiting() && armPosIndex != 0) {
+					if (!armOneShot && arm.isArmEnabled() && armPosIndex != 0) {
 						armPosIndex = 0;
 						//arm.rotateArmToPosition(Constants.armPositions[armPosIndex]);		//arm.rotateArmXDegrees(47);
 						System.out.println("Trying to move arm to position 0 : " + armPosIndex);
@@ -280,7 +282,7 @@ public class Robot extends IterativeRobot {
 					armOneShot = true;
 					break;
 				case 270:	// normal shot (slightly higher than outerworks)
-					if (!armOneShot && arm.isArmEnabled() && arm.isArmWaiting() && armPosIndex != 2) {
+					if (!armOneShot && arm.isArmEnabled() && armPosIndex != 2) {
 						armPosIndex = 2;
 						//arm.rotateArmToPosition(Constants.armPositions[armPosIndex]);		//arm.rotateArmXDegrees(47);
 						System.out.println("Trying to move arm to position 2 : " + armPosIndex);

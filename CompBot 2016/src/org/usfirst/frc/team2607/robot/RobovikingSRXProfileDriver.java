@@ -1,5 +1,7 @@
 package org.usfirst.frc.team2607.robot;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.usfirst.frc.team2607.robot.SRXProfileDriver.PeriodicRunnable;
 
 import edu.wpi.first.wpilibj.CANTalon;
@@ -20,7 +22,8 @@ public class RobovikingSRXProfileDriver extends Thread {
 
 	private SRXProfile motionProfile;		// the profile we'll push to the Talon and execute
 	private CANTalon talonSRX;				// the Talon we're driving
-	private int state;						// the state machine control variable
+	//private int state;						
+	private AtomicInteger state;			// the state machine control variable
 	Notifier notifier = new Notifier(new PeriodicRunnable());
 	
 	private CANTalon.MotionProfileStatus talonMPStatus = new CANTalon.MotionProfileStatus();
@@ -32,50 +35,51 @@ public class RobovikingSRXProfileDriver extends Thread {
 	public RobovikingSRXProfileDriver(CANTalon t) {
 		talonSRX = t;
 		motionProfile = null;
-		state = 0;
+		state = new AtomicInteger(0);
 	}
 
 	public void process() {
 
 		if (talonSRX.getControlMode() != TalonControlMode.MotionProfile) return;
 		talonSRX.getMotionProfileStatus(talonMPStatus);
-		switch (state) {
+		switch (state.get()) {
 			default:					// the default state is just waiting for command to push MP, 
 										// talon MP state could be either Hold or Disable
 				break;	
 			case 1:						// triggered start
 				if (talonMPStatus.outputEnable == CANTalon.SetValueMotionProfile.Disable) { 
 					talonSRX.clearMotionProfileTrajectories();	
-					state += 1;
+					state.compareAndSet(1,2);		//state += 1;
 				}
 				talonSRX.set(CANTalon.SetValueMotionProfile.Disable.value);
 				break;
 			case 2:						// if we get here, talon is disabled and ready for MP push
 				if (motionProfile == null) {
-					state = 0;
+					state.compareAndSet(2, 0);		//state = 0;
 					return;
 				}
 				motionProfile.generateAndPushProfile(talonSRX);
-				state += 1;
+				state.compareAndSet(2, 3);			//state += 1;
 				break;
 			case 3:						// check if enough points have been streamed, and enable if so
 				if (talonMPStatus.btmBufferCnt > 5) {
 					talonSRX.set(CANTalon.SetValueMotionProfile.Enable.value);
-					state += 1;
+					state.compareAndSet(3, 4);		//state += 1;
 				}
 				break;
 			case 4:						// MP is running, when we get to end set talon to hold last point
 				if (talonMPStatus.activePointValid && talonMPStatus.activePoint.isLastPoint) {
 					talonSRX.set(CANTalon.SetValueMotionProfile.Hold.value);
-					state = 0;
+					state.compareAndSet(4, 0);		//state = 0;
 				}
 				break;
 			case 10:					// reset state to interrupt and clear the running MP, and go back to wait	
 				if (talonMPStatus.outputEnable == CANTalon.SetValueMotionProfile.Disable) {
 					talonSRX.clearMotionProfileTrajectories();
-					state = 0;
+					state.set(0);
+				} else {
+					talonSRX.set(CANTalon.SetValueMotionProfile.Disable.value);
 				}
-				talonSRX.set(CANTalon.SetValueMotionProfile.Disable.value);
 				break;
 		}
 	}
@@ -93,22 +97,23 @@ public class RobovikingSRXProfileDriver extends Thread {
 	
 	public void pushAndStartMP(SRXProfile mp) {
 		// if we're in wait state, go ahead and try to start profile
-		if (state == 0) {
+		if (state.get() == 0) {
 			motionProfile = mp;
-			state = 1;
+			state.set(1);
 		}
 	}
 	
 	public void interruptMP() {
 		// if we're running a profile (enabled), interrupt (disable and clear) and go to wait state
-		if (state != 0) state = 10;
+		if (state.get() != 0) state.set(10);
 	}	
 	
 	public boolean isMPRunning() {
-		return (state != 0);
+		return (state.get() != 0);
 	}
-	
+/*	
 	public int getMPState() {
-		return state;
+		return state.get();
 	}
+*/
 }

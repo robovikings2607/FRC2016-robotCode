@@ -1,15 +1,4 @@
 Testing to do:
-[DONE] 1) boot up with arm lowered; verify arm positioning works with new driver class
-			a) run arm up; when up it shouldn't go up again
-			b) run arm down; when down it shouldn't go down again 
-[DONE] 2) change code to use an array of absolute positions rather than rotating by angle
-			a) fully test, including pushing up while arm is already moving up (should have no effect, 
-			just finish original profile)
-[DONE] 3) test arm homing procedure 
-			a) boot up with arm up; verify can't move arm in teleop;  verify homing works
-				- initially, stop homing early by triggering switch;  after confirming that works, reboot with 
-				arm up and run full homing procedure
-			b) after homing verify arm positioning works
 
 4) confirm that disabling and re-enabling is safe (e.g. transition from auto to teleop)
 	a) with winder homing in progress, disable and re-enable;  shooter should resume and complete homing, and end 
@@ -22,9 +11,6 @@ Testing to do:
 		1) upon re-enabling, arm should stay in current position and you should be able to move as normal (profile
 		should handle current position)
 
-4) position PID tuning for drive train
-	a) run from autonomous rather than test to keep it simple and verify no unexpected wierdness	
-
 CompBot 2016 Control Scheme
 
 Driver Controls
@@ -32,20 +18,30 @@ Driver Controls
 		- left stick Y axis is forward/reverse, right stick X axis is left/right turn
 	right stick button is shift
 		- code defaults to high gear (solenoid set to true on init) 
+	start button is auton mode select
 	
 Operator Controls follow MikeyBear's Dream Control Scheme 
 
-	Shoot and re-cock shooter - Right Trigger
+	Right Trigger: 	Shoot and re-cock shooter 
 		- controller will rumble if you try to shoot and claw isn't opened
-	Lock the shooter		  - Left Trigger
+
+	Left Trigger:	Lock the arm (interrupt any running MP, and engage lock)
+
 	Left and Right Bumpers - Rollers in and out
-  	Up and down on D-Pad - move arm up and down
+
+  	DPad Up:  	arm highest position (-66.535)
+  	DPad Left: 	arm courtyard shot position (-45.69)
+  	DPad Right:	arm outerworks shot position (-43)
+  	DPad Down:	arm fully down (0) 
+
 	Toggle Claw open/closed	- Button B
 	
-		Start button:  press and hold to execute shooter homing procedure....
-			- needs to be run if robot booted with shooter not fully cocked
-			- only runs if shooter's not enabled
-			- if you release the start button before the shooter reaches home, it'll abort and you have to re-run
+	Start button:  press and hold to execute shooter homing procedure....
+		- needs to be run if robot booted with shooter not fully cocked
+		- only runs if shooter's not enabled
+		- if you release the start button before the shooter reaches home, it'll abort and you have to re-run
+	
+	Back button:  press to execute arm homing procedure
 			
 Maintenance Controls (Test Mode)
 
@@ -61,52 +57,25 @@ Maintenance Controls (Test Mode)
 	Button B (2) - Toggle claw open/close
 	
 TODO:
-1) Need to determine start-up procedure for field
-	- when powered off arm will fall if below ~45deg (gravity)
-	- need external sensor to detect raised position, and assume on power up if that switch doesn't detect the
-	arm, that the arm is at it's lowest position
-		- can try setting soft limit to that position and see how it works, think we need to reset arm
-		motion profiles (i.e. call PuncherArm.resetArm()) if the soft limit fault occurs, and possibly
-		clear it, before any other profiels will run
-		- check with Omar on expected behavior
+1) handle loss of winder encoder position when moving up to grab; the following may work
+	- current position less than prior, we've lost position....jump to step 3 in sequence which stops, grabs, and runs shooter back to home
+	position.  From there operator may need to shoot to re-cock if we weren't far enough forward to grab when we jumped to step 3
 
-	- tested setting and clearing faults;  JNI methods not implemented for reading SRX faults so robot code
-	crashes.  Therefore can't use these, and will have to eliminate the forward soft limit eventually
-	- will need to try using just VBUS with low command	to move to 0 position
+2) handle interrupting current arm profile and starting another one
+	a) in Robot, remove check for isArmWaiting() from dpad conditions
+	b) update ArmPositioningThread (checkAndRotateArm(), lockArm()) to handle interruption
+		- will need to add steps to state machine
+		- lockArm()
+			- if arm is currently moving, stop & clear profile, and engage brake once MP is clear (talon disabled)
+			- if arm isn't moving, engage brake 
+		
+3) (due to the above 2 changes where we're interrupting state machines, implement states as AtomicInteger to avoid
+concurrency issues....do this for RobovikingSRXProfileDriver as well)
+	a) RobovikingSRXProfileDriver
+		
+4) vibrate oController if operator runs rollers but claw is open
 
-	UPDATE:
-		- implemented ArmHomingThread, need to decide how to fire it (the oContoller back button?)
-			- only fire if arm control is disabled, obviously
-	 
-2) Plan and code autonomous routine for HH (low bar, turn, shoot)
-	- on-the-fly profile generation and execution now works for the drive train, however generation is 
-	time-consuming, and just controlling the wheel velocities doesn't give accurate enough travel
-	- need to:
-		- incorporate execution of profiles generated & serialized offline
-		- incorporate and tune position PID with Kv feed-forward (RobovikingModPIDController)
-			- profiles will all be relative to where we start, so just need to reset drive encoder positions
-			at start of profile
-
-3) Add TCP code (or user network tables) for data exchange with vision app
-
-4) (?) add slow speed for rollers so centering the ball is easier (just a small "tap" outwards of the roller) (?)
-
-5) refactor SRXProfileDriver as a thread, and wait for Talon to report that it's MPE state is disabled before
-pushing new profile - the example driver from Omar doesn't do this, but per his response to my question it's
-proper procedure to wait until the Talon reports it's MPE state as disabled before pushing new points
-	- with driver as a thread we don't have to call the driver control() (arm.process()) from teleopPeriodic 
-	(or autonomousPeriodic)
-
-6) add power logger/monitor to drive train
-
-7) update winder logger to record process step, power, encoder, etc to use to diagnose failure and see if we can
-detect based on current draw when it's pushing the plunger (see below)
-
-8) ? check for winder stall as a protection against over driving when moving up to grab plunger?
-	- stall is probably too late actually....check current being drawn normally, and watch for spike which would
-	indicate it's started pushing the plunger up?
-	- check encoder position during movement for consistency? (i.e. position delta should stay pretty consistent)
-
+5) increase arm speed
 	 
 Arm Positioning:
 	Talon encoder provides count of cim motor revs, forward >0, reverse <0
