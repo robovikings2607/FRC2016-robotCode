@@ -224,9 +224,25 @@ public class Robot extends IterativeRobot {
     	//Controlling the rollers
     	if(oController.getRawButton(RobovikingStick.xBoxRightBumper)) {
     		arm.rockAndRoll(-1.0);
+    		
+    		if(arm.getArmLimiter()){
+    			oController.setRumble(Joystick.RumbleType.kLeftRumble, 1);
+    			oController.setRumble(Joystick.RumbleType.kRightRumble, 1);
+    		} else {
+    			oController.setRumble(Joystick.RumbleType.kLeftRumble, 0);
+    			oController.setRumble(Joystick.RumbleType.kRightRumble, 0);
+    		}
     	}
     	else if(oController.getRawButton(RobovikingStick.xBoxLeftBumper)) {
     		arm.rockAndRoll(1.0);
+    		
+    		if(arm.getArmLimiter()){
+    			oController.setRumble(Joystick.RumbleType.kLeftRumble, 1);
+    			oController.setRumble(Joystick.RumbleType.kRightRumble, 1);
+    		} else {
+    			oController.setRumble(Joystick.RumbleType.kLeftRumble, 0);
+    			oController.setRumble(Joystick.RumbleType.kRightRumble, 0);
+    		}
     	}
     	else {
     		arm.rockAndRoll(0);

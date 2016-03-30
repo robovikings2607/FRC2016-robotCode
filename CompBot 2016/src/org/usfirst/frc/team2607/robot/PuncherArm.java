@@ -136,9 +136,9 @@ public class PuncherArm {
 				int sleepTime = 50;
 				switch (step.get()) {
 					case 1:					// start of "check and move" sequence
-						if (!armLocker.get()) step.compareAndSet(1, 2);	//step += 1;    //if arm isn't locked, proceed to rotation step
+						if (armLocker.get()) step.compareAndSet(1, 2);	//step += 1;    //if arm isn't locked, proceed to rotation step
 						else {						 // otherwise, unlock and wait for a bit before proceeding to rotate
-							armLocker.set(false);
+							armLocker.set(true); //changed from false
 							sleepTime = 1000;
 							step.compareAndSet(1, 2);		//step +=1;
 						}
@@ -154,7 +154,7 @@ public class PuncherArm {
 						break;
 					// "check and move" sequence ends here
 					case 10:						// start of locking sequence  
-						if (armLocker.get()) step.compareAndSet(10, 0);		// if arm already locked, goto wait step
+						if (!armLocker.get()) step.compareAndSet(10, 0);		// if arm already locked, goto wait step
 						else {
 							//doRotationProfile();		// move to the target position (locking pos in this case) // no longer needed
 							// interrupt any running MP
@@ -170,7 +170,7 @@ public class PuncherArm {
 						sleepTime = 250;
 						break;
 					case 12:
-						armLocker.set(true);
+						armLocker.set(false); //changed from true
 						sleepTime = 1000;
 						step.compareAndSet(12, 0);
 						break;
@@ -399,7 +399,7 @@ public class PuncherArm {
 
 		// just interrupt any existing MP;  don't ever reset position
 		armProfile.interruptMP();
-		armLocker.set(false);
+		armLocker.set(true); //changed to true
 	}
 	
 	public double getArmPosition() {
