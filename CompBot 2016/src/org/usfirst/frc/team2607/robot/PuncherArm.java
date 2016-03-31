@@ -139,7 +139,7 @@ public class PuncherArm {
 						if (armLocker.get()) step.compareAndSet(1, 2);	//step += 1;    //if arm isn't locked, proceed to rotation step
 						else {						 // otherwise, unlock and wait for a bit before proceeding to rotate
 							armLocker.set(true); //changed from false
-							sleepTime = 1000;
+							sleepTime = 250;
 							step.compareAndSet(1, 2);		//step +=1;
 						}
 						break;
@@ -149,7 +149,10 @@ public class PuncherArm {
 						step.compareAndSet(2, 3);	//step += 1;
 						break;
 					case 3:
-						if (!armProfile.isMPRunning()) step.compareAndSet(3, 0);	//step = 0;
+						if (!armProfile.isMPRunning()) {
+							armLocker.set(false);		// always lock upon completing movement
+							step.compareAndSet(3, 0);	//step = 0;
+						}
 						sleepTime = 20;
 						break;
 					// "check and move" sequence ends here
@@ -170,8 +173,7 @@ public class PuncherArm {
 						sleepTime = 250;
 						break;
 					case 12:
-						armLocker.set(false); //changed from true
-						sleepTime = 1000;
+						armLocker.set(false); // lock the arm, changed from true
 						step.compareAndSet(12, 0);
 						break;
 					// locking sequence ends here
@@ -246,6 +248,8 @@ public class PuncherArm {
 		public void run() {
 			if (armEnabled) return;
 			System.out.println("Starting ArmHoming Thread...");
+			armLocker.set(true);	// unlock the arm
+			try {Thread.sleep(200); } catch (Exception e) {}
 			armRotator.changeControlMode(TalonControlMode.PercentVbus); 
 			armRotator.setPosition(0);
 			armRotator.set(.25);
@@ -257,10 +261,12 @@ public class PuncherArm {
 			if (armLimiter.get()) {
 				System.out.println("WARNING!  Arm homing sequence aborted, arm should be moving but encoder isn't moving");
 				System.out.println("Leaving arm control disabled");
+				armLocker.set(false);	// lock the arm
 				armEnabled = false;
 			} else {
 				armRotator.setPosition(0);
 	    		armRotator.changeControlMode(TalonControlMode.MotionProfile);
+	    		armLocker.set(false);	// lock the arm
 	    		armEnabled = true;
 			}
 		}

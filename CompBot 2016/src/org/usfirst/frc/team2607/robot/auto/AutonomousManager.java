@@ -65,8 +65,12 @@ public class AutonomousManager {
 		double tolerance = 0.5;
 		robot.shifter.set(false);
 		
-		while(true) {
-			if (System.currentTimeMillis() > (startTime + timeoutMilli)) break;
+		boolean keepLooping = true;
+		while(keepLooping) {
+			if (System.currentTimeMillis() > (startTime + timeoutMilli)) {
+				keepLooping = false;
+				break;
+			}
 			
 			double error = navx.getYaw() - degrees;
 			System.out.println("TurnAngleError: " + error);
@@ -79,6 +83,7 @@ public class AutonomousManager {
 			}
 			
 			if (navx.getYaw() > (degrees - tolerance) && navx.getYaw() < (degrees + tolerance)){
+				keepLooping = false;
 				break;
 			} else {
 				robot.rDrive.arcadeDrive(0, calcTurn);
@@ -88,7 +93,9 @@ public class AutonomousManager {
 			try {
 				Thread.sleep(20);
 			} catch (InterruptedException e) {
-				
+				System.out.println("rotateDegrees interrupted");
+				keepLooping = false;
+				break;
 			}
 		}
 		

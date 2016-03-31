@@ -54,7 +54,8 @@ public class Robot extends IterativeRobot {
 	private double moveVal , rotateVal ;
 	private boolean armInTestFlag, armOneShot, armLockOneShot = false;
 	private int armPosIndex = 0;						// index into array of arm positions
-		
+	private boolean tryingToShootWithPickupClosed = false, runningRollersWithArmUp = false;
+	
 	/**
      * This function is run when the robot is first started up and should be
      * used for any initialization code.
@@ -128,7 +129,7 @@ public class Robot extends IterativeRobot {
     	autoThread = new Thread(autoEngine);
 //    	autoEngine.setMode(2);
     	if (autoEngine.getMode() == 2 || autoEngine.getMode() == 3) armPosIndex = 2;
-    	autoThread.start(); //JUST FOR TESTING
+    	autoThread.start(); 
     }
 
     public void autonomousPeriodic() {
@@ -173,9 +174,11 @@ public class Robot extends IterativeRobot {
     	if(++counter >= 50){
     		msgCount += 1;
     		System.out.println(msgCount + ": Shooter Enabled: " + arm.isShooterEnabled() + "  Shooter Cocked: " + arm.isShooterCocked() 
-    							+ "Shooter Eye: " + arm.getShooterEye());
+    							+ " Shooter Eye: " + arm.getShooterEye());
     		System.out.println(msgCount + ": Arm Eye: " + arm.getArmLimiter() + " Arm Enabled: " + arm.isArmEnabled()
-    							+ " Arm Down: " + arm.isArmDown() + "\n");
+    							+ " Arm Down: " + arm.isArmDown());
+    		System.out.println(msgCount + ": aimAngleDeg: " + SmartDashboard.getNumber("aimAngleDeg", 999) 
+    							+ " Arm Position: " + arm.getArmPosition() + "\n");
     		SmartDashboard.putNumber("Arm Position", arm.getArmPosition());
     		counter = 0;
     	}    	
@@ -191,18 +194,18 @@ public class Robot extends IterativeRobot {
     	// Driving!
     	shifter.set(!dController.getToggleButton(RobovikingStick.xBoxButtonRightStick));  // defaults to high gear (true)
     	rDrive.arcadeDrive(moveVal, rotateVal);
-    	   
+
+
     	//Shooting controls
     	if(oController.getTriggerPressed(RobovikingStick.xBoxRightTrigger) && arm.isShooterEnabled()) {  // right trigger = axis 3
     		if (!arm.isClawOpen()) {
-    			oController.setRumble(Joystick.RumbleType.kLeftRumble, 1);
-    			oController.setRumble(Joystick.RumbleType.kRightRumble, 1);
+    			tryingToShootWithPickupClosed = true;
     		} else {
-    			arm.executeShootAndReloadSequence();		// go ahead and shoot	
+    			arm.executeShootAndReloadSequence();  // go ahead and shoot
+    			tryingToShootWithPickupClosed = false;
     		}    		
     	} else {
-    		oController.setRumble(Joystick.RumbleType.kLeftRumble, 0);
-    		oController.setRumble(Joystick.RumbleType.kRightRumble, 0);
+    		tryingToShootWithPickupClosed = false;
     	}
     	
     	
@@ -219,42 +222,37 @@ public class Robot extends IterativeRobot {
     	if (oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonBack) && !arm.isArmEnabled()) {
     		arm.executeArmHomingSequence();
     	}
-    	
-    	
+    	    	
     	//Controlling the rollers
     	if(oController.getRawButton(RobovikingStick.xBoxRightBumper)) {
     		arm.rockAndRoll(-1.0);
-    		
-    		if(arm.getArmLimiter()){
-    			oController.setRumble(Joystick.RumbleType.kLeftRumble, 1);
-    			oController.setRumble(Joystick.RumbleType.kRightRumble, 1);
-    		} else {
-    			oController.setRumble(Joystick.RumbleType.kLeftRumble, 0);
-    			oController.setRumble(Joystick.RumbleType.kRightRumble, 0);
-    		}
+    		runningRollersWithArmUp = !arm.isArmDown();
     	}
     	else if(oController.getRawButton(RobovikingStick.xBoxLeftBumper)) {
     		arm.rockAndRoll(1.0);
-    		
-    		if(arm.getArmLimiter()){
-    			oController.setRumble(Joystick.RumbleType.kLeftRumble, 1);
-    			oController.setRumble(Joystick.RumbleType.kRightRumble, 1);
-    		} else {
-    			oController.setRumble(Joystick.RumbleType.kLeftRumble, 0);
-    			oController.setRumble(Joystick.RumbleType.kRightRumble, 0);
-    		}
+    		runningRollersWithArmUp = !arm.isArmDown();
     	}
     	else {
     		arm.rockAndRoll(0);
+    		runningRollersWithArmUp = false;
     	}
     	
     	//Controlling the claw (open or close)
     	arm.toggleClaw(oController.getToggleButton(RobovikingStick.xBoxButtonB));
+
+    	// controller rumble
+    	if (tryingToShootWithPickupClosed || runningRollersWithArmUp) {
+    		oController.setRumble(Joystick.RumbleType.kLeftRumble, 1);
+    		oController.setRumble(Joystick.RumbleType.kRightRumble, 1);
+    	} else {
+    		oController.setRumble(Joystick.RumbleType.kLeftRumble, 0);
+    		oController.setRumble(Joystick.RumbleType.kRightRumble, 0);
+    	}
     	
     	//Controlling the arm - check safeties: 
     	//	1) the position encoder is present and interrupt MP if not
     	arm.checkArmEncoderPresent();
-
+ 	    	
     	if(!armInTestFlag){
 
     		// removed arm.isArmWaiting() check from all commands, to allow for interrupt

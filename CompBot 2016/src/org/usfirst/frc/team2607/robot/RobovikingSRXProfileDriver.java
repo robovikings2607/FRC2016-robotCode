@@ -69,7 +69,7 @@ public class RobovikingSRXProfileDriver extends Thread {
 				break;
 			case 4:						// MP is running, when we get to end set talon to hold last point
 				if (talonMPStatus.activePointValid && talonMPStatus.activePoint.isLastPoint) {
-					talonSRX.set(CANTalon.SetValueMotionProfile.Hold.value);
+					talonSRX.set(CANTalon.SetValueMotionProfile.Disable.value);		// changed to disable due to locking
 					state.compareAndSet(4, 0);		//state = 0;
 				}
 				break;
