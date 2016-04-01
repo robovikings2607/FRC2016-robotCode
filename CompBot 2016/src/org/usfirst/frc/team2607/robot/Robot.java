@@ -52,7 +52,7 @@ public class Robot extends IterativeRobot {
 //	SimpleTableServer dataTable;
 	
 	private double moveVal , rotateVal ;
-	private boolean armInTestFlag, armOneShot, armLockOneShot = false;
+	private boolean armInTestFlag, armOneShot, armLockOneShot = false, armVisionOneShot = false;
 	private int armPosIndex = 0;						// index into array of arm positions
 	private boolean tryingToShootWithPickupClosed = false, runningRollersWithArmUp = false;
 	
@@ -177,7 +177,7 @@ public class Robot extends IterativeRobot {
     							+ " Shooter Eye: " + arm.getShooterEye());
     		System.out.println(msgCount + ": Arm Eye: " + arm.getArmLimiter() + " Arm Enabled: " + arm.isArmEnabled()
     							+ " Arm Down: " + arm.isArmDown());
-    		System.out.println(msgCount + ": aimAngleDeg: " + SmartDashboard.getNumber("aimAngleDeg", 999) 
+    		System.out.println(msgCount + ": targetAngleInFOV: " + SmartDashboard.getNumber("targetAngleInFOV", 999) 
     							+ " Arm Position: " + arm.getArmPosition() + "\n");
     		SmartDashboard.putNumber("Arm Position", arm.getArmPosition());
     		counter = 0;
@@ -257,6 +257,7 @@ public class Robot extends IterativeRobot {
 
     		// removed arm.isArmWaiting() check from all commands, to allow for interrupt
     		
+    		// lock arm in current position (interrupting movement if necessary)
     		if(oController.getTriggerPressed(RobovikingStick.xBoxLeftTrigger)) {  // left trigger = axis 2
         		if (!armLockOneShot && arm.isArmEnabled() && armPosIndex != -1) {
         			armPosIndex = -1;
@@ -267,6 +268,24 @@ public class Robot extends IterativeRobot {
         		armLockOneShot = false;
         	}
     		
+    		// move arm to high goal target angle based on vision tracking    		
+    		if (oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonA) && !armVisionOneShot && arm.isArmEnabled()) {
+    			double targetAngleInFOV = SmartDashboard.getNumber("targetAngleInFOV", 999);
+    			double armPosition = .0005909 * Math.pow(targetAngleInFOV, 3) + 
+    								 -.07626081 * Math.pow(targetAngleInFOV, 2) +
+    								 2.661478844 * targetAngleInFOV + 
+    								 -68.3454292;
+    			
+    			if (armPosition < 0 && armPosition > -67.0) {
+    				armPosIndex = -2;
+    				arm.executeCheckAndRotate(armPosition);
+    				armVisionOneShot = true;
+    			} 
+    		} else {
+    			armVisionOneShot = false;
+    		}
+    		
+    		// dpad manual arm positioning
     		switch (oController.getPOV(0)) {
 				case 0:		// highest position
 					if (!armOneShot && arm.isArmEnabled() && armPosIndex != 3)  { 
