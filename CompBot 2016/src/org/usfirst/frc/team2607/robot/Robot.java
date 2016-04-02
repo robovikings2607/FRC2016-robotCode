@@ -134,7 +134,7 @@ public class Robot extends IterativeRobot {
 
     public void autonomousPeriodic() {
     	
-    	consoleMessage();
+    	//consoleMessage();
     	
     }
     
@@ -144,7 +144,7 @@ public class Robot extends IterativeRobot {
     	arm.resetArm();
     	arm.checkArmEncoderPresent();
     	
-    	consoleMessage();
+    	//consoleMessage();
     	
     	leftMotors.log.enableLogging(false);
     	rightMotors.log.enableLogging(false);
@@ -178,24 +178,68 @@ public class Robot extends IterativeRobot {
     		System.out.println(msgCount + ": Arm Eye: " + arm.getArmLimiter() + " Arm Enabled: " + arm.isArmEnabled()
     							+ " Arm Down: " + arm.isArmDown());
     		System.out.println(msgCount + ": targetAngleInFOV: " + SmartDashboard.getNumber("targetAngleInFOV", 999) 
-    							+ " Arm Position: " + arm.getArmPosition() + "\n");
+    									+ " degToRotate: " + SmartDashboard.getNumber("degToRotate", 999) 
+    								    + " Arm Position: " + arm.getArmPosition() + "\n");
     		SmartDashboard.putNumber("Arm Position", arm.getArmPosition());
     		counter = 0;
     	}    	
     }
     
+    public double calcTurn(double degToTurn) {
+		long timeoutMilli = 3000;
+		long startTime = System.currentTimeMillis();
+		
+		double kP = 0.05;
+		double maxTurn = 0.7;
+		double tolerance = 0.5;
+				
+		double error = navX.getYaw() - degToTurn;
+		System.out.println("calcTurn error: " + error);
+			
+		double calcTurn = kP * error;
+			if (error <= 0){
+				calcTurn = Math.max(-maxTurn, calcTurn - .4);
+			} else {
+				calcTurn = Math.min(maxTurn, calcTurn + .4);
+			}
+			
+		if (navX.getYaw() > (degToTurn - tolerance) && navX.getYaw() < (degToTurn + tolerance)){
+			return 0.0;
+		} else {
+			System.out.println("CommandedVoltage: " + calcTurn);
+			return calcTurn;
+		}
+
+    }
+    
+    
+    boolean turnOneShot = false;
+    double degFromVision = 990;
     public void teleopPeriodic() {
 
-    	consoleMessage();
+    	//consoleMessage();
 
     	moveVal = -( dController.getRawAxisWithDeadzone(RobovikingStick.xBoxLeftStickY) );
     	rotateVal = - (dController.getRawAxisWithDeadzone(RobovikingStick.xBoxRightStickX));
-    	
+
+    	if (dController.getRawButton(RobovikingStick.xBoxButtonA)) {
+    		if (!turnOneShot) {
+    			turnOneShot = true;
+    			navX.zeroYaw();
+    			degFromVision = SmartDashboard.getNumber("degToRotate", 999);
+    		}
+    		if (degFromVision != -999 && degFromVision != 999) {
+    			rotateVal = calcTurn(degFromVision);
+    			rDrive.arcadeDrive(0, rotateVal);
+    		}
+    	} else {
+    		turnOneShot = false;
+    		rDrive.arcadeDrive(moveVal, rotateVal);	
+    	}
+
     	// Driving!
     	shifter.set(!dController.getToggleButton(RobovikingStick.xBoxButtonRightStick));  // defaults to high gear (true)
-    	rDrive.arcadeDrive(moveVal, rotateVal);
-
-
+    	
     	//Shooting controls
     	if(oController.getTriggerPressed(RobovikingStick.xBoxRightTrigger) && arm.isShooterEnabled()) {  // right trigger = axis 3
     		if (!arm.isClawOpen()) {

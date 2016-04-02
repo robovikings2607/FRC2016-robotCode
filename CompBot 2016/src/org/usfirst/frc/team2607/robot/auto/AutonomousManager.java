@@ -8,6 +8,8 @@ import org.usfirst.frc.team2607.robot.RobovikingDriveTrainProfileDriver;
 import com.kauailabs.navx.frc.AHRS;
 import com.team254.lib.trajectory.Path;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 /**
  * @author Cerora
  *
@@ -52,17 +54,17 @@ public class AutonomousManager {
 		}
 	}
 	
-	public void rotateDegrees(double degrees, boolean zeroFirst){
+	public void rotateDegrees(double degrees, boolean zeroFirst, long timeoutMS){
 		AHRS navx = robot.navX;
 		if(zeroFirst) navx.zeroYaw();
 		robot.rightMotors.setInverted(false); //Set to TRUE when done
 		
-		long timeoutMilli = 3000;
+		long timeoutMilli = timeoutMS;
 		long startTime = System.currentTimeMillis();
 		
 		double kP = 0.05;
 		double maxTurn = 0.7;
-		double tolerance = 0.5;
+		double tolerance = .25; //0.5;
 		robot.shifter.set(false);
 		
 		boolean keepLooping = true;
@@ -77,9 +79,9 @@ public class AutonomousManager {
 			
 			double calcTurn = kP * error;
 			if (error <= 0){
-				calcTurn = Math.max(-maxTurn, calcTurn - .4);
+				calcTurn = Math.max(-maxTurn, calcTurn - .35); // .4
 			} else {
-				calcTurn = Math.min(maxTurn, calcTurn + .4);
+				calcTurn = Math.min(maxTurn, calcTurn + .35); // .4
 			}
 			
 			if (navx.getYaw() > (degrees - tolerance) && navx.getYaw() < (degrees + tolerance)){
@@ -120,9 +122,53 @@ public class AutonomousManager {
 
 		@Override
 		public void run() {
-			robot.navX.zeroYaw();
 
-			rotateDegrees(-130, false);
+			robot.navX.zeroYaw();
+			robot.arm.toggleClaw(true);
+			
+			if (!robot.arm.isArmEnabled()) {
+				robot.arm.executeArmHomingSequence();
+				try {Thread.sleep(1500);} catch (Exception e) {}
+//				while (!robot.arm.isArmEnabled()) {try { Thread.sleep(20); } catch (Exception e) {}}
+			}
+/*			
+			robot.arm.executeCheckAndRotate(-45.69);
+			rotateDegrees(-126.6, false, 3000);
+*/			
+			while (!robot.arm.isArmEnabled()) {try { Thread.sleep(20); } catch (Exception e) {}}
+			try {Thread.sleep(200);} catch (Exception e) {}
+			double targetAngleInFOV = SmartDashboard.getNumber("targetAngleInFOV", 999);
+			double degFromVision = SmartDashboard.getNumber("degToRotate", 999);
+			int maxCount = 0;
+			while (((targetAngleInFOV == 999 || targetAngleInFOV == -999) || 
+					(degFromVision == 999 || degFromVision == -999)) ){
+				try {Thread.sleep(10); } catch(Exception e) {}
+				targetAngleInFOV = SmartDashboard.getNumber("targetAngleInFOV", 999);
+				degFromVision = SmartDashboard.getNumber("degToRotate", 999);
+			}
+			
+			System.out.println("Angle used for Auton shot: " + targetAngleInFOV);
+			
+			double armPosition = .0005909 * Math.pow(targetAngleInFOV, 3) + 
+					 -.07626081 * Math.pow(targetAngleInFOV, 2) +
+					 2.661478844 * targetAngleInFOV + 
+					 -68.3454292;
+
+			if (armPosition < 0 && armPosition > -67.0) {			
+				robot.arm.executeCheckAndRotate(armPosition);
+			}
+			System.out.println("degFromVision: " + degFromVision);
+			rotateDegrees(degFromVision, true, 2000);
+			
+			while (!robot.arm.isArmWaiting()) {try { Thread.sleep(10); } catch (Exception e) {}}
+			
+			robot.arm.toggleClaw(false);
+			
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {}
+					
+			//robot.arm.shoot();		// go ahead and shoot
 		}
 
 		@Override
@@ -200,11 +246,36 @@ public class AutonomousManager {
 			
 //			robot.arm.rotateArmToPosition(-45.69);
 			robot.arm.executeCheckAndRotate(-45.69);
-			rotateDegrees(-126.6, false);
+			rotateDegrees(-126.6, false, 3000);
 			
-			while (!robot.arm.isArmWaiting()) {try { Thread.sleep(20); } catch (Exception e) {}}
+			//while (!robot.arm.isArmWaiting()) {try { Thread.sleep(20); } catch (Exception e) {}}
+			double targetAngleInFOV = SmartDashboard.getNumber("targetAngleInFOV", 999);
+			int maxCount = 0;
+			while ((targetAngleInFOV == 999 || targetAngleInFOV == -999) && ++maxCount < 10){
+				try {Thread.sleep(10); } catch(Exception e) {}
+				targetAngleInFOV = SmartDashboard.getNumber("targetAngleInFOV", 999);
+			}
+			
+			System.out.println("Angle used for Auton shot: " + targetAngleInFOV);
+			
+			double armPosition = .0005909 * Math.pow(targetAngleInFOV, 3) + 
+					 -.07626081 * Math.pow(targetAngleInFOV, 2) +
+					 2.661478844 * targetAngleInFOV + 
+					 -68.3454292;
+
+			if (armPosition < 0 && armPosition > -67.0) {			
+				robot.arm.executeCheckAndRotate(armPosition);
+			}
+			
+			double degFromVision = SmartDashboard.getNumber("degToRotate", 999);
+			if (degFromVision != -999 && degFromVision != 999) {
+				rotateDegrees(degFromVision, true, 1500);
+			}
+			
+			while (!robot.arm.isArmWaiting()) {try { Thread.sleep(10); } catch (Exception e) {}}
 			
 			robot.arm.toggleClaw(false);
+			
 			try {
 				Thread.sleep(500);
 			} catch (InterruptedException e) {}
