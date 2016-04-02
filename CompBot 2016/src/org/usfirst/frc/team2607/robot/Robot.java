@@ -116,6 +116,7 @@ public class Robot extends IterativeRobot {
 		}
     }
  
+    boolean autonModeRan = false;
     public void autonomousInit() {
     	// NOTE:  must set rightMotors inverted in order to use motion profile, due to the completely messed-up 
     	// way the WPILib RobotDrive handles opposing sides of the robot drivetrain....again, not that we're complaining
@@ -130,6 +131,7 @@ public class Robot extends IterativeRobot {
 //    	autoEngine.setMode(2);
     	if (autoEngine.getMode() == 2 || autoEngine.getMode() == 3) armPosIndex = 2;
     	autoThread.start(); 
+    	autonModeRan = true;
     }
 
     public void autonomousPeriodic() {
@@ -139,6 +141,13 @@ public class Robot extends IterativeRobot {
     }
     
     public void disabledPeriodic() {
+    	
+    	if (autonModeRan) {
+    		autonModeRan = false;
+    		if (autoThread != null) {
+    			if (autoThread.isAlive()) autoThread.interrupt();
+    		}
+    	}
     	
     	arm.handleWinderInDisabled();
     	arm.resetArm();
@@ -219,6 +228,7 @@ public class Robot extends IterativeRobot {
 
     	//consoleMessage();
 
+    	// Driving!
     	moveVal = -( dController.getRawAxisWithDeadzone(RobovikingStick.xBoxLeftStickY) );
     	rotateVal = - (dController.getRawAxisWithDeadzone(RobovikingStick.xBoxRightStickX));
 
@@ -229,15 +239,14 @@ public class Robot extends IterativeRobot {
     			degFromVision = SmartDashboard.getNumber("degToRotate", 999);
     		}
     		if (degFromVision != -999 && degFromVision != 999) {
-    			rotateVal = calcTurn(degFromVision);
-    			rDrive.arcadeDrive(0, rotateVal);
+    			rDrive.arcadeDrive(0, calcTurn(degFromVision));
     		}
     	} else {
     		turnOneShot = false;
     		rDrive.arcadeDrive(moveVal, rotateVal);	
     	}
 
-    	// Driving!
+    	// Shifting!
     	shifter.set(!dController.getToggleButton(RobovikingStick.xBoxButtonRightStick));  // defaults to high gear (true)
     	
     	//Shooting controls

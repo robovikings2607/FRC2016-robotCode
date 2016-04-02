@@ -54,7 +54,8 @@ public class AutonomousManager {
 		}
 	}
 	
-	public void rotateDegrees(double degrees, boolean zeroFirst, long timeoutMS){
+	public boolean rotateDegrees(double degrees, boolean zeroFirst, long timeoutMS){
+		boolean interrupted = false;
 		AHRS navx = robot.navX;
 		if(zeroFirst) navx.zeroYaw();
 		robot.rightMotors.setInverted(false); //Set to TRUE when done
@@ -64,11 +65,17 @@ public class AutonomousManager {
 		
 		double kP = 0.05;
 		double maxTurn = 0.7;
-		double tolerance = .25; //0.5;
+		double tolerance = 0.25; //0.5; 
 		robot.shifter.set(false);
 		
 		boolean keepLooping = true;
 		while(keepLooping) {
+			if (Thread.interrupted()) {
+				keepLooping = false;
+				interrupted = true;
+				break;
+			}
+			
 			if (System.currentTimeMillis() > (startTime + timeoutMilli)) {
 				keepLooping = false;
 				break;
@@ -86,6 +93,7 @@ public class AutonomousManager {
 			
 			if (navx.getYaw() > (degrees - tolerance) && navx.getYaw() < (degrees + tolerance)){
 				keepLooping = false;
+				robot.rDrive.arcadeDrive(0, 0);
 				break;
 			} else {
 				robot.rDrive.arcadeDrive(0, calcTurn);
@@ -97,6 +105,7 @@ public class AutonomousManager {
 			} catch (InterruptedException e) {
 				System.out.println("rotateDegrees interrupted");
 				keepLooping = false;
+				interrupted = true;
 				break;
 			}
 		}
@@ -104,6 +113,7 @@ public class AutonomousManager {
 		robot.rDrive.arcadeDrive(0, 0);
 		robot.rightMotors.setInverted(true);
 		robot.shifter.set(true);
+		return interrupted;
 	}
 	
 	
@@ -139,12 +149,14 @@ public class AutonomousManager {
 			try {Thread.sleep(200);} catch (Exception e) {}
 			double targetAngleInFOV = SmartDashboard.getNumber("targetAngleInFOV", 999);
 			double degFromVision = SmartDashboard.getNumber("degToRotate", 999);
-			int maxCount = 0;
 			while (((targetAngleInFOV == 999 || targetAngleInFOV == -999) || 
 					(degFromVision == 999 || degFromVision == -999)) ){
 				try {Thread.sleep(10); } catch(Exception e) {}
 				targetAngleInFOV = SmartDashboard.getNumber("targetAngleInFOV", 999);
 				degFromVision = SmartDashboard.getNumber("degToRotate", 999);
+				if (Thread.interrupted()) {
+					return;
+				}
 			}
 			
 			System.out.println("Angle used for Auton shot: " + targetAngleInFOV);
@@ -158,15 +170,20 @@ public class AutonomousManager {
 				robot.arm.executeCheckAndRotate(armPosition);
 			}
 			System.out.println("degFromVision: " + degFromVision);
-			rotateDegrees(degFromVision, true, 2000);
+			if (rotateDegrees(degFromVision, true, 2000)) {
+				// rotateDegrees returns true if this thread is being interrupted
+				return;
+			}
 			
-			while (!robot.arm.isArmWaiting()) {try { Thread.sleep(10); } catch (Exception e) {}}
+			while (!robot.arm.isArmWaiting()) {try { Thread.sleep(10); } catch (InterruptedException e) { return;}}
 			
 			robot.arm.toggleClaw(false);
 			
 			try {
 				Thread.sleep(500);
-			} catch (InterruptedException e) {}
+			} catch (InterruptedException e) {
+				return;
+			}
 					
 			//robot.arm.shoot();		// go ahead and shoot
 		}
@@ -246,17 +263,27 @@ public class AutonomousManager {
 			
 //			robot.arm.rotateArmToPosition(-45.69);
 			robot.arm.executeCheckAndRotate(-45.69);
-			rotateDegrees(-126.6, false, 3000);
+			if (rotateDegrees(-126.6, false, 3000)) {
+				// rotateDegrees returns true if thread interrupted
+				return;
+			}
 			
 			//while (!robot.arm.isArmWaiting()) {try { Thread.sleep(20); } catch (Exception e) {}}
+			try {Thread.sleep(200);} catch(InterruptedException e) { return; }
 			double targetAngleInFOV = SmartDashboard.getNumber("targetAngleInFOV", 999);
-			int maxCount = 0;
-			while ((targetAngleInFOV == 999 || targetAngleInFOV == -999) && ++maxCount < 10){
+			double degFromVision = SmartDashboard.getNumber("degToRotate", 999);
+			while ((targetAngleInFOV == 999 || targetAngleInFOV == -999) || 
+					(degFromVision == 999 || degFromVision == -999)){
 				try {Thread.sleep(10); } catch(Exception e) {}
 				targetAngleInFOV = SmartDashboard.getNumber("targetAngleInFOV", 999);
+				degFromVision = SmartDashboard.getNumber("degToRotate", 999);
+				if (Thread.interrupted()) {
+					return;
+				}
 			}
 			
 			System.out.println("Angle used for Auton shot: " + targetAngleInFOV);
+			System.out.println("degFromVision: " + degFromVision);
 			
 			double armPosition = .0005909 * Math.pow(targetAngleInFOV, 3) + 
 					 -.07626081 * Math.pow(targetAngleInFOV, 2) +
@@ -267,18 +294,19 @@ public class AutonomousManager {
 				robot.arm.executeCheckAndRotate(armPosition);
 			}
 			
-			double degFromVision = SmartDashboard.getNumber("degToRotate", 999);
 			if (degFromVision != -999 && degFromVision != 999) {
-				rotateDegrees(degFromVision, true, 1500);
+				if (rotateDegrees(degFromVision, true, 1500)) {
+					return;
+				}
 			}
 			
-			while (!robot.arm.isArmWaiting()) {try { Thread.sleep(10); } catch (Exception e) {}}
+			while (!robot.arm.isArmWaiting()) {try { Thread.sleep(10); } catch (InterruptedException e) { return; }}
 			
 			robot.arm.toggleClaw(false);
 			
 			try {
 				Thread.sleep(500);
-			} catch (InterruptedException e) {}
+			} catch (InterruptedException e) { return;}
 
 			//robot.arm.shoot();		// go ahead and shoot	
 			
