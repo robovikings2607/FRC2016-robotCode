@@ -45,7 +45,7 @@ public class Constants {
 	// 0.0 is arm down;  all other positions are negative, since reverse motor drives the arm up
 	public static double[] armPositions = 
 										//{0.0, -40.0, -44.0, -50.0};
-										{0.0, -43.0, -45.69, -66.535};
+										{0.0, -40.0, -54.0, -66.535};
 	
 
 	public static int[] leftDeviceIDs = { leftMotor1 , leftMotor2 , leftMotor3 , leftEncChannelA , leftEncChannelB };

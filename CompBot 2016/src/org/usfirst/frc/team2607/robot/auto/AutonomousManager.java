@@ -24,7 +24,6 @@ public class AutonomousManager {
 		
 		modes.add(new DoNothingFailsafe());
 		modes.add(new DoNothing());
-		modes.add(new BreachLowBar(robot));
 		modes.add(new BreachLowBarAndShoot(robot));
 		modes.add(new TestAutonMode(robot));
 	}
@@ -57,15 +56,26 @@ public class AutonomousManager {
 	public boolean rotateDegrees(double degrees, boolean zeroFirst, long timeoutMS){
 		boolean interrupted = false;
 		AHRS navx = robot.navX;
-		if(zeroFirst) navx.zeroYaw();
+		boolean keepZeroing = true;
+		while(zeroFirst && keepZeroing) { 
+			navx.zeroYaw();
+			double n = navx.getYaw();
+			if (n > -1.0 && n < 1.0) {
+				keepZeroing = false;
+			} else {
+				try {Thread.sleep(10); } catch (InterruptedException e) { return true; }
+			}
+			if (Thread.interrupted()) return true;
+		}
+		
 		robot.rightMotors.setInverted(false); //Set to TRUE when done
 		
 		long timeoutMilli = timeoutMS;
 		long startTime = System.currentTimeMillis();
 		
-		double kP = 0.05;
+		double kP = 0.053;
 		double maxTurn = 0.7;
-		double tolerance = 0.25; //0.5; 
+		double tolerance = 0.5; //0.5; 
 		robot.shifter.set(false);
 		
 		boolean keepLooping = true;
@@ -86,9 +96,9 @@ public class AutonomousManager {
 			
 			double calcTurn = kP * error;
 			if (error <= 0){
-				calcTurn = Math.max(-maxTurn, calcTurn - .35); // .4
+				calcTurn = Math.max(-maxTurn, calcTurn - .36); // .4
 			} else {
-				calcTurn = Math.min(maxTurn, calcTurn + .35); // .4
+				calcTurn = Math.min(maxTurn, calcTurn + .36); // .4
 			}
 			
 			if (navx.getYaw() > (degrees - tolerance) && navx.getYaw() < (degrees + tolerance)){
@@ -151,7 +161,7 @@ public class AutonomousManager {
 			double degFromVision = SmartDashboard.getNumber("degToRotate", 999);
 			while (((targetAngleInFOV == 999 || targetAngleInFOV == -999) || 
 					(degFromVision == 999 || degFromVision == -999)) ){
-				try {Thread.sleep(10); } catch(Exception e) {}
+				try {Thread.sleep(10); } catch(Exception e) { return; }
 				targetAngleInFOV = SmartDashboard.getNumber("targetAngleInFOV", 999);
 				degFromVision = SmartDashboard.getNumber("degToRotate", 999);
 				if (Thread.interrupted()) {
@@ -196,32 +206,10 @@ public class AutonomousManager {
 	}
 	
 
+
 	public class BreachLowBarAndShoot extends AutonomousMode {
 
 		BreachLowBarAndShoot(Robot r) {
-			super(r);
-			// TODO Auto-generated constructor stub
-		}
-
-		@Override
-		public void run() {
-			
-			new BreachLowBar(robot).run();
-
-			robot.arm.shoot();		// go ahead and shoot	
-			
-		}
-
-		@Override
-		public String getName() {
-			return "BreachLowAndShoot";
-		}
-		
-	}
-	
-	public class BreachLowBar extends AutonomousMode {
-
-		BreachLowBar(Robot r) {
 			super(r);
 			// TODO Auto-generated constructor stub
 		}
@@ -274,7 +262,7 @@ public class AutonomousManager {
 			double degFromVision = SmartDashboard.getNumber("degToRotate", 999);
 			while ((targetAngleInFOV == 999 || targetAngleInFOV == -999) || 
 					(degFromVision == 999 || degFromVision == -999)){
-				try {Thread.sleep(10); } catch(Exception e) {}
+				try {Thread.sleep(10); } catch(Exception e) {return;}
 				targetAngleInFOV = SmartDashboard.getNumber("targetAngleInFOV", 999);
 				degFromVision = SmartDashboard.getNumber("degToRotate", 999);
 				if (Thread.interrupted()) {
@@ -295,26 +283,28 @@ public class AutonomousManager {
 			}
 			
 			if (degFromVision != -999 && degFromVision != 999) {
-				if (rotateDegrees(degFromVision, true, 1500)) {
+				if (rotateDegrees(degFromVision, true, 3500)) {
 					return;
 				}
 			}
 			
 			while (!robot.arm.isArmWaiting()) {try { Thread.sleep(10); } catch (InterruptedException e) { return; }}
 			
+			if (Thread.interrupted()) return;
+			
 			robot.arm.toggleClaw(false);
 			
 			try {
-				Thread.sleep(500);
+				Thread.sleep(250);
 			} catch (InterruptedException e) { return;}
 
-			//robot.arm.shoot();		// go ahead and shoot	
+			robot.arm.shoot();		// go ahead and shoot	
 			
 		}
 
 		@Override
 		public String getName() {
-			return "BreachLowBar";
+			return "BreachLowBarAndShoot";
 		}
 		
 	}

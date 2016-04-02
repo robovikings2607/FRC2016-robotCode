@@ -30,19 +30,25 @@ public class PuncherArm {
 		@Override
 		public void run() {
 			int sleepTime = 0;
+			double startPos = 0, curPos = 0;
+			double startTime = 0, runTime = 0;
 			System.out.println("Starting AutoWinder thread...");
 			while (true) {
 				try {
 					switch (step.get()) {
 						case 1:			// starting from the cocked position...
-							punchWinder.setPosition(0);
+							//punchWinder.setPosition(0);
+							startPos = punchWinder.getPosition();
 							shoot();	// release lock
 							sleepTime = 250;
 							step.compareAndSet(1, 2);			//step += 1;
+							startTime = System.currentTimeMillis();
 							break;
 						case 2:		
 							punchWinder.set(.6); // move forward to grab
-							if (punchWinder.getPosition() >= 100) {
+							runTime = System.currentTimeMillis() - startTime;
+							curPos = Math.abs(punchWinder.getPosition() - startPos);
+							if (curPos >= 100 || runTime >= 7000) {
 								punchWinder.set(0);
 								step.compareAndSet(2, 3);		//step +=1;
 							}
@@ -51,14 +57,17 @@ public class PuncherArm {
 						case 3: 
 							punchWinder.set(0); // stop moving
 							lock();				// close the lock
-							punchWinder.setPosition(0);
+							//punchWinder.setPosition(0);
+							startPos = punchWinder.getPosition();
 							sleepTime = 250;	// wait .25 secs
 							step.compareAndSet(3, 4);			//step += 1;
 							break;
 						case 4: 
 							punchWinder.set(-1.0);	// draw back
 							sleepTime = 10;
-							if (punchWinder.getPosition() <= -100 || !shooterCocked.get()) {
+							curPos = Math.abs(punchWinder.getPosition() - startPos);
+							if (curPos >= 100 || !shooterCocked.get()) {
+								try {Thread.sleep(100);} catch (Exception e) {}
 								punchWinder.set(0);
 								step.compareAndSet(4, 5);		//step += 1;
 							}

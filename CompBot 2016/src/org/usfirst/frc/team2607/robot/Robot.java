@@ -145,7 +145,13 @@ public class Robot extends IterativeRobot {
     	if (autonModeRan) {
     		autonModeRan = false;
     		if (autoThread != null) {
-    			if (autoThread.isAlive()) autoThread.interrupt();
+    			if (autoThread.isAlive()) { 
+    				System.out.println("autoThread alive, interrupting");
+    				autoThread.interrupt();
+    			} else {
+    				System.out.println("autoThread not alive");
+    			}
+    			
     		}
     	}
     	
@@ -198,7 +204,7 @@ public class Robot extends IterativeRobot {
 		long timeoutMilli = 3000;
 		long startTime = System.currentTimeMillis();
 		
-		double kP = 0.05;
+		double kP = 0.053;
 		double maxTurn = 0.7;
 		double tolerance = 0.5;
 				
@@ -207,9 +213,9 @@ public class Robot extends IterativeRobot {
 			
 		double calcTurn = kP * error;
 			if (error <= 0){
-				calcTurn = Math.max(-maxTurn, calcTurn - .4);
+				calcTurn = Math.max(-maxTurn, calcTurn - .36);
 			} else {
-				calcTurn = Math.min(maxTurn, calcTurn + .4);
+				calcTurn = Math.min(maxTurn, calcTurn + .36);
 			}
 			
 		if (navX.getYaw() > (degToTurn - tolerance) && navX.getYaw() < (degToTurn + tolerance)){
