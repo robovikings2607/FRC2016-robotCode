@@ -17,7 +17,7 @@ public class PuncherArm {
 	private RobovikingSRXProfileDriver armProfile;
 	private Solenoid punchLock , santaClaw, armLocker;
 	private DigitalInput armLimiter , shooterCocked;
-	private final double armRotatorMaxSpeed = 18.0;  // cim rotations per second, for motion profiles
+//	private final double armRotatorMaxSpeed = 18.0;  // cim rotations per second, for motion profiles
 	private AutoWinder winderThread;
 	private ArmPositioningThread armPosThread;
 	private boolean shooterEnabled, armEnabled;
@@ -138,6 +138,7 @@ public class PuncherArm {
 		private AtomicInteger step = new AtomicInteger(0);
 		private double targetPosition, pendingTargetPosition;	// pendingTargetPosition is used to temporarily hold new
 																// target position when interrupting a running MP
+		private double armMaxRPM = 18.0;						// max speed to run arm (default 18.0)
 		
 		@Override
 		public void run() {
@@ -212,7 +213,7 @@ public class PuncherArm {
 			double distance = -((armRotator.getPosition() - targetPosition));
 			//		- distance and maxspeed must have same sign for profile generation to work
 			double direction = (distance) / Math.abs(distance);
-			double maxSpeed = direction * armRotatorMaxSpeed;
+			double maxSpeed = direction * armMaxRPM;
 			if (!armProfile.isMPRunning()) {
 				armProfile.pushAndStartMP(new SRXProfile(maxSpeed, armRotator.getPosition(), distance, 250, 250, 10));
 			}
@@ -220,15 +221,19 @@ public class PuncherArm {
 
 		// if arm is waiting, do the "check and move" sequence
 		// if arm is rotating, do the "interrupt, check and move" sequence  
-		public void checkAndRotateArm(double targetPos) {
+		public void checkAndRotateArm(double targetPos, double maxRPM) {
 			System.out.println("checkAndRotate...enabled " + armEnabled + " step: " + step);
 			if (!armEnabled) return;
 			int curStep = step.get(); 
 			if (curStep == 0) {
 				targetPosition = targetPos;
+				armMaxRPM = maxRPM;
 				step.set(1); 
-			} else {
+				return;
+			} 
+			if (curStep == 3){
 				pendingTargetPosition = targetPos;
+				armMaxRPM = maxRPM;
 				step.set(20);
 			}
 		}
@@ -467,7 +472,11 @@ public class PuncherArm {
 	}
 	
 	public void executeCheckAndRotate(double targetPos) {
-		armPosThread.checkAndRotateArm(targetPos);
+		armPosThread.checkAndRotateArm(targetPos, 18.0);
+	}
+	
+	public void executeCheckAndRotate(double targetPos, double maxRPM) {
+		armPosThread.checkAndRotateArm(targetPos, maxRPM);
 	}
 	
 	public void executeArmLocking() {

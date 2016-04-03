@@ -351,7 +351,7 @@ public class Robot extends IterativeRobot {
 						armPosIndex = 3;
 						//arm.rotateArmToPosition(Constants.armPositions[armPosIndex]); //arm.rotateArmToPosition(-45.69); // arm.rotateArmXDegrees(-47);
 						System.out.println("Trying to move arm to position 3 : " + armPosIndex);
-						arm.executeCheckAndRotate(Constants.armPositions[armPosIndex]);
+						arm.executeCheckAndRotate(Constants.armPositions[armPosIndex], 26.0);
 					}
 					armOneShot = true;
 					break;
@@ -360,7 +360,7 @@ public class Robot extends IterativeRobot {
 						armPosIndex = 1;
 						//arm.rotateArmToPosition(Constants.armPositions[armPosIndex]);
 						System.out.println("Trying to move arm to position 1 : " + armPosIndex);
-						arm.executeCheckAndRotate(Constants.armPositions[armPosIndex]);
+						arm.executeCheckAndRotate(Constants.armPositions[armPosIndex], 26.0);
 					}
 					armOneShot = true;
 					break;
@@ -369,7 +369,7 @@ public class Robot extends IterativeRobot {
 						armPosIndex = 0;
 						//arm.rotateArmToPosition(Constants.armPositions[armPosIndex]);		//arm.rotateArmXDegrees(47);
 						System.out.println("Trying to move arm to position 0 : " + armPosIndex);
-						arm.executeCheckAndRotate(Constants.armPositions[armPosIndex]);
+						arm.executeCheckAndRotate(Constants.armPositions[armPosIndex], 26.0);
 					}
 					armOneShot = true;
 					break;
@@ -378,7 +378,7 @@ public class Robot extends IterativeRobot {
 						armPosIndex = 2;
 						//arm.rotateArmToPosition(Constants.armPositions[armPosIndex]);		//arm.rotateArmXDegrees(47);
 						System.out.println("Trying to move arm to position 2 : " + armPosIndex);
-						arm.executeCheckAndRotate(Constants.armPositions[armPosIndex]);
+						arm.executeCheckAndRotate(Constants.armPositions[armPosIndex], 26.0);
 					}
 					armOneShot = true;
 					break;
