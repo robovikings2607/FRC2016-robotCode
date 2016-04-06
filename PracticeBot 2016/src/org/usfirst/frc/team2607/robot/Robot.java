@@ -56,16 +56,16 @@ public class Robot extends IterativeRobot implements PIDOutput {
     	shakeAndBrake = new Solenoid( 1 , Constants.brake);
     	loggerTron = null;
     	
-    	kp = 0.053;
-    	ki = 0;
-    	kd = 0;
-    	feedForward = 0.1;
+    	kp = 0.0;	// 0.053
+    	ki = 0.0;
+    	kd = 0.0;
+    	feedForward = 0.0; // 0.1
     	navX = new AHRS(SPI.Port.kMXP);
     	pidController = new PIDController(kp, ki, kd, feedForward, navX, this);
     	
     	pidController.setInputRange(-180, 180);
     	pidController.setOutputRange(-0.7, 0.7);
-    	pidController.setAbsoluteTolerance(0.);
+    	pidController.setAbsoluteTolerance(0.5);
     	
     	compressor.start();
     }
@@ -80,15 +80,19 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 	@Override
 	public void teleopInit() {
-		loggerTron = new PowerLogger(this);
-		loggerTron.startLogging();
+//		loggerTron = new PowerLogger(this);
+//		loggerTron.startLogging();
 	}
+
 	boolean turnOneShot = false;
     double degFromVision = 990;
+    int count = 0;
+    long startTime, lineupTime;
     
     /**
      * This function is called periodically during operator control
      */
+    String robotInfo;
     public void teleopPeriodic() {
     	
     	//Controls Stuff
@@ -98,14 +102,38 @@ public class Robot extends IterativeRobot implements PIDOutput {
     			turnOneShot = true;
     			navX.zeroYaw();
     			degFromVision = SmartDashboard.getNumber("degToRotate", 999);
+    			kp = SmartDashboard.getNumber("Kp", 0);
+    			ki = SmartDashboard.getNumber("Ki", 0);
+    			kd = SmartDashboard.getNumber("Kd", 0);
+    			feedForward = SmartDashboard.getNumber("FF", 0);
     			if (degFromVision != -999 && degFromVision != 999) {
+    				pidController.setPID(kp, ki, kd, feedForward);
     				pidController.setSetpoint(degFromVision);
+    				startTime = System.currentTimeMillis();
     				pidController.enable();
+    				robotInfo = "Turning ";
+    				SmartDashboard.putBoolean("robotSaveFrames", true);
     			}
+    		}
+    		if (!pidController.onTarget()) {
+    			lineupTime = System.currentTimeMillis() - startTime; 
+    		}
+    		robotInfo += ", onT: " + pidController.onTarget() + " ms: " + lineupTime + " CO: " + pidController.get();
+    		SmartDashboard.putString("robotInfo", robotInfo);
+    		SmartDashboard.putNumber("robotTurnSP", degFromVision);
+    		SmartDashboard.putNumber("robotTurnPV", navX.pidGet());
+    		if (++count > 25) {
+    			System.out.println("SP: " + degFromVision + " PV: " + navX.pidGet() + " CO: " + pidController.get()
+    					+ " onTarget: " + pidController.onTarget() + " lineupTime: " + lineupTime);
+    			count = 0;
     		}
     	} else {
     		turnOneShot = false;
     		pidController.disable();
+    		SmartDashboard.putBoolean("robotSaveFrames", false);
+    		SmartDashboard.putString("robotInfo", "--");
+    		SmartDashboard.putNumber("robotTurnSP", -999);
+    		SmartDashboard.putNumber("robotTurnPV", -999);
     	}
     	
     	//Driving Stuff
