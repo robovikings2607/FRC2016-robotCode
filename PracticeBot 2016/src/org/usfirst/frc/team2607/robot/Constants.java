@@ -2,5 +2,9 @@ package org.usfirst.frc.team2607.robot;
 
 public class Constants {
 
-	//TODO Put all constants/port #'s in this class
+	public static int 
+		shifter = 0,
+		clawSolenoid = 1,
+		plunger = 2,
+		brake = 3;
 }

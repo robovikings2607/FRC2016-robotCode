@@ -1,11 +1,17 @@
 
 package org.usfirst.frc.team2607.robot;
 
+import com.kauailabs.navx.frc.AHRS;
+
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.PIDController;
+import edu.wpi.first.wpilibj.PIDOutput;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.RobotDrive;
+import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.Solenoid;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -14,14 +20,17 @@ import edu.wpi.first.wpilibj.Solenoid;
  * creating this project, you must also update the manifest file in the resource
  * directory.
  */
-public class Robot extends IterativeRobot {
+public class Robot extends IterativeRobot implements PIDOutput {
 	
 	Transmission leftMotors , rightMotors;
-	Solenoid shifterOne , shifterTwo;
+	Solenoid shifter , clawinator , polarPlungerHook , shakeAndBrake ;
 	Compressor compressor;
 	RobovikingStick bearTech;
-	RobotDrive mindOfFinn;
+	RobotDrive soulOfFinn;
 	PowerLogger loggerTron;
+	PIDController pidController;
+	AHRS navX;
+	double kp , ki , kd , feedForward;
 	double moveVal , rotateVal;
 	
     /**
@@ -29,16 +38,34 @@ public class Robot extends IterativeRobot {
      * used for any initialization code.
      */
     public void robotInit() {
+    	/*
+    	 * claw  1
+    	 * plunger 2
+    	 * brake 3
+    	 */
     	
     	rightMotors = new Transmission(1,2 , false);
     	leftMotors = new Transmission(3,4 , false);
     	bearTech = new RobovikingStick(0);
-    	mindOfFinn = new RobotDrive(leftMotors , rightMotors);
+    	soulOfFinn = new RobotDrive(leftMotors , rightMotors);
     	
     	compressor = new Compressor(1);
-    	shifterOne = new Solenoid( 1 , 0 );
-    	shifterTwo = new Solenoid( 1 , 1 );
+    	shifter = new Solenoid( 1 , Constants.shifter );
+    	clawinator = new Solenoid( 1 , Constants.clawSolenoid);
+    	polarPlungerHook = new Solenoid( 1 , Constants.plunger);
+    	shakeAndBrake = new Solenoid( 1 , Constants.brake);
     	loggerTron = null;
+    	
+    	kp = 0.053;
+    	ki = 0;
+    	kd = 0;
+    	feedForward = 0.1;
+    	navX = new AHRS(SPI.Port.kMXP);
+    	pidController = new PIDController(kp, ki, kd, feedForward, navX, this);
+    	
+    	pidController.setInputRange(-180, 180);
+    	pidController.setOutputRange(-0.7, 0.7);
+    	pidController.setAbsoluteTolerance(0.);
     	
     	compressor.start();
     }
@@ -56,38 +83,37 @@ public class Robot extends IterativeRobot {
 		loggerTron = new PowerLogger(this);
 		loggerTron.startLogging();
 	}
-
-	/**
-	 * This autonomous (along with the chooser code above) shows how to select between different autonomous modes
-	 * using the dashboard. The sendable chooser code works with the Java SmartDashboard. If you prefer the LabVIEW
-	 * Dashboard, remove all of the chooser code and uncomment the getString line to get the auto name from the text box
-	 * below the Gyro
-	 *
-	 * You can add additional auto modes by adding additional comparisons to the switch structure below with additional strings.
-	 * If using the SendableChooser make sure to add them to the chooser code above as well.
-	 */
-    public void autonomousInit() {
-    	
-    }
-
-    /**
-     * This function is called periodically during autonomous
-     */
-    public void autonomousPeriodic() {
-    	
-    }
-
+	boolean turnOneShot = false;
+    double degFromVision = 990;
+    
     /**
      * This function is called periodically during operator control
      */
     public void teleopPeriodic() {
     	
+    	//Controls Stuff
+    	
+    	if(bearTech.getRawButton(RobovikingStick.xBoxButtonA)) {
+    		if(!turnOneShot) {
+    			turnOneShot = true;
+    			navX.zeroYaw();
+    			degFromVision = SmartDashboard.getNumber("degToRotate", 999);
+    			if (degFromVision != -999 && degFromVision != 999) {
+    				pidController.setSetpoint(degFromVision);
+    				pidController.enable();
+    			}
+    		}
+    	} else {
+    		turnOneShot = false;
+    		pidController.disable();
+    	}
+    	
+    	//Driving Stuff
     	moveVal = ( bearTech.getRawAxisWithDeadzone(RobovikingStick.xBoxLeftStickY) );
     	rotateVal =  ( bearTech.getRawAxisWithDeadzone(RobovikingStick.xBoxRightStickX) );
     	
-    	shifterOne.set(bearTech.getToggleButton(RobovikingStick.xBoxButtonRightStick));
-    	shifterTwo.set(bearTech.getToggleButton(RobovikingStick.xBoxButtonRightStick));
-    	mindOfFinn.arcadeDrive( moveVal , rotateVal);
+    	shifter.set(bearTech.getToggleButton(RobovikingStick.xBoxButtonRightStick));
+    	soulOfFinn.arcadeDrive( moveVal , rotateVal);
     }
     
     public double getDriverYIn() {
@@ -112,5 +138,10 @@ public class Robot extends IterativeRobot {
     public void testPeriodic() {
     
     }
+
+	@Override
+	public void pidWrite(double output) {
+		soulOfFinn.arcadeDrive(0, output);
+	}
     
 }
