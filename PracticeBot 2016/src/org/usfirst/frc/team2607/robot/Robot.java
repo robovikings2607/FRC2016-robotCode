@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.PIDController;
 import edu.wpi.first.wpilibj.PIDOutput;
+import edu.wpi.first.wpilibj.PIDSourceType;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.SPI;
@@ -30,7 +31,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	PowerLogger loggerTron;
 	PIDController pidController;
 	AHRS navX;
-	double kp , ki , kd , feedForward;
+	double kp , ki , kd , feedForward, turnSP;
 	double moveVal , rotateVal;
 	
     /**
@@ -49,25 +50,27 @@ public class Robot extends IterativeRobot implements PIDOutput {
     	bearTech = new RobovikingStick(0);
     	soulOfFinn = new RobotDrive(leftMotors , rightMotors);
     	
-    	compressor = new Compressor(1);
+    	//compressor = new Compressor(1);
     	shifter = new Solenoid( 1 , Constants.shifter );
     	clawinator = new Solenoid( 1 , Constants.clawSolenoid);
     	polarPlungerHook = new Solenoid( 1 , Constants.plunger);
     	shakeAndBrake = new Solenoid( 1 , Constants.brake);
     	loggerTron = null;
     	
-    	kp = 0.0;	// 0.053
-    	ki = 0.0;
+    	kp = 0.053;	// 0.053
+    	ki = 0.00012;
     	kd = 0.0;
-    	feedForward = 0.0; // 0.1
+    	feedForward = .51; // 0.1
+    	turnSP = 0.0;
     	navX = new AHRS(SPI.Port.kMXP);
+    	navX.setPIDSourceType(PIDSourceType.kDisplacement);
     	pidController = new PIDController(kp, ki, kd, feedForward, navX, this);
     	
     	pidController.setInputRange(-180, 180);
-    	pidController.setOutputRange(-0.7, 0.7);
+    	pidController.setOutputRange(-1, 1);
     	pidController.setAbsoluteTolerance(0.5);
-    	
-    	compressor.start();
+    	soulOfFinn.setSafetyEnabled(false);
+    	//compressor.start();
     }
     
 	@Override
@@ -82,6 +85,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	public void teleopInit() {
 //		loggerTron = new PowerLogger(this);
 //		loggerTron.startLogging();
+		SmartDashboard.putNumber("turnSP", turnSP);
 	}
 
 	boolean turnOneShot = false;
@@ -102,13 +106,10 @@ public class Robot extends IterativeRobot implements PIDOutput {
     			turnOneShot = true;
     			navX.zeroYaw();
     			degFromVision = SmartDashboard.getNumber("degToRotate", 999);
-    			kp = SmartDashboard.getNumber("Kp", 0);
-    			ki = SmartDashboard.getNumber("Ki", 0);
-    			kd = SmartDashboard.getNumber("Kd", 0);
-    			feedForward = SmartDashboard.getNumber("FF", 0);
+    			turnSP = SmartDashboard.getNumber("turnSP", 0);
     			if (degFromVision != -999 && degFromVision != 999) {
     				pidController.setPID(kp, ki, kd, feedForward);
-    				pidController.setSetpoint(degFromVision);
+    				pidController.setSetpoint(turnSP);
     				startTime = System.currentTimeMillis();
     				pidController.enable();
     				robotInfo = "Turning ";
@@ -120,28 +121,31 @@ public class Robot extends IterativeRobot implements PIDOutput {
     		}
     		robotInfo += ", onT: " + pidController.onTarget() + " ms: " + lineupTime + " CO: " + pidController.get();
     		SmartDashboard.putString("robotInfo", robotInfo);
-    		SmartDashboard.putNumber("robotTurnSP", degFromVision);
+    		SmartDashboard.putNumber("robotTurnSP", pidController.getSetpoint());
     		SmartDashboard.putNumber("robotTurnPV", navX.pidGet());
     		if (++count > 25) {
-    			System.out.println("SP: " + degFromVision + " PV: " + navX.pidGet() + " CO: " + pidController.get()
+    			System.out.println("SP: " + pidController.getSetpoint() + " PV: " + navX.pidGet() + " CO: " + pidController.get()
     					+ " onTarget: " + pidController.onTarget() + " lineupTime: " + lineupTime);
     			count = 0;
     		}
     	} else {
-    		turnOneShot = false;
-    		pidController.disable();
+    		if (turnOneShot) {
+    			pidController.reset();
+    			pidController.disable();
+    			turnOneShot = false;
+    		}
     		SmartDashboard.putBoolean("robotSaveFrames", false);
     		SmartDashboard.putString("robotInfo", "--");
     		SmartDashboard.putNumber("robotTurnSP", -999);
     		SmartDashboard.putNumber("robotTurnPV", -999);
+        	//Driving Stuff
+        	moveVal = ( bearTech.getRawAxisWithDeadzone(RobovikingStick.xBoxLeftStickY) );
+        	rotateVal =  ( bearTech.getRawAxisWithDeadzone(RobovikingStick.xBoxRightStickX) );
+        	
+        	shifter.set(bearTech.getToggleButton(RobovikingStick.xBoxButtonRightStick));
+        	soulOfFinn.arcadeDrive( moveVal , rotateVal);
     	}
     	
-    	//Driving Stuff
-    	moveVal = ( bearTech.getRawAxisWithDeadzone(RobovikingStick.xBoxLeftStickY) );
-    	rotateVal =  ( bearTech.getRawAxisWithDeadzone(RobovikingStick.xBoxRightStickX) );
-    	
-    	shifter.set(bearTech.getToggleButton(RobovikingStick.xBoxButtonRightStick));
-    	soulOfFinn.arcadeDrive( moveVal , rotateVal);
     }
     
     public double getDriverYIn() {
