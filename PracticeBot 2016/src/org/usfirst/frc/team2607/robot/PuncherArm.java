@@ -1,19 +1,18 @@
 package org.usfirst.frc.team2607.robot;
 
-import java.io.File;
-import java.io.PrintWriter;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.Solenoid;
+import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.CANTalon.FeedbackDevice;
 import edu.wpi.first.wpilibj.CANTalon.TalonControlMode;
 import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.DriverStation;
 
 public class PuncherArm {
 	
-	private CANTalon punchWinder , armRotator , rollerz;
+	private CANTalon punchWinder , armRotator ;
+	private Talon rollerz;
 	private RobovikingSRXProfileDriver armProfile;
 	private Solenoid punchLock , santaClaw, armLocker;
 	private DigitalInput armLimiter , shooterCocked;
@@ -289,7 +288,7 @@ public class PuncherArm {
 	public PuncherArm(){
 		punchWinder = new CANTalon(Constants.puncherMotor);
 		armRotator = new CANTalon(Constants.armMotor);
-		rollerz = new CANTalon(Constants.rollersMotor);
+		rollerz = new Talon(Constants.rollersMotor);
 		
 		armProfile = new RobovikingSRXProfileDriver(armRotator);
 		armProfile.start();
@@ -419,7 +418,7 @@ public class PuncherArm {
 
 		// just interrupt any existing MP;  don't ever reset position
 		armProfile.interruptMP();
-		armLocker.set(true); //changed to true
+		armLocker.set(true);
 	}
 	
 	public double getArmPosition() {
@@ -467,7 +466,6 @@ public class PuncherArm {
 	}
 	
 	public void executeShootAndReloadSequence(){
-//		santaClaw.set(false);						// open the pickup claw
 		winderThread.startFromCockedPosition();
 	}
 	
