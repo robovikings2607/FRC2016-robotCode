@@ -388,6 +388,18 @@ public class Robot extends IterativeRobot {
 					break;
 			}
     		
+    		if(oController.getRawButton(RobovikingStick.xBoxButtonX)){
+    			if (!armOneShot && arm.isArmEnabled() && armPosIndex != 4) {
+					armPosIndex = 4;
+					//arm.rotateArmToPosition(Constants.armPositions[armPosIndex]);		//arm.rotateArmXDegrees(47);
+					System.out.println("Trying to move arm to position 4 : " + armPosIndex);
+					arm.executeCheckAndRotate(Constants.armPositions[armPosIndex], 30.0);
+				}
+				armOneShot = true;
+    		} else {
+    			armOneShot = false;
+    		}
+    		
     	}
     	
         
