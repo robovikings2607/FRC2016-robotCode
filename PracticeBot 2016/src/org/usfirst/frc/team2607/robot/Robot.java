@@ -4,7 +4,6 @@ package org.usfirst.frc.team2607.robot;
 import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.wpilibj.Compressor;
-import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PIDController;
@@ -39,9 +38,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	
 	//Objects for Arm
 	PuncherArm arm ;
-	DigitalInput armLimiter , plungerLimiter;
 	private int armPosIndex = 0;
-	private boolean armLimitFlag , plungerLimitFlag;
 	private boolean armInTestFlag, armOneShot, armLockOneShot = false;
 	private boolean tryingToShootWithPickupClosed = false, runningRollersWithArmUp = false;
 
@@ -71,12 +68,8 @@ public class Robot extends IterativeRobot implements PIDOutput {
     	
     	//Arm
     	arm = new PuncherArm();
-    	armLimiter = new DigitalInput(Constants.armLimiter);
-    	plungerLimiter = new DigitalInput(Constants.plungerLimiter);
     	armPosIndex = 0;
     	armInTestFlag = false;
-    	armLimitFlag = true;
-    	plungerLimitFlag = true;
     	
     	//Pneumatics
     	//compressor = new Compressor(1);
@@ -132,8 +125,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
     String robotInfo;
     public void teleopPeriodic() {
     	
-    	//Controls Stuff
-    	
+    	/*	//Auto-Aligning to a certain angle determined by vision 
     	if(driveController.getRawButton(RobovikingStick.xBoxButtonA)) {
     		if(!turnOneShot) {
     			turnOneShot = true;
@@ -161,21 +153,16 @@ public class Robot extends IterativeRobot implements PIDOutput {
     					+ " onTarget: " + pidController.onTarget() + " lineupTime: " + lineupTime);
     			count = 0;
     		}
-    	} else {
+    	}
+    	*/ 
+    		//Used for auto-aligning (will not run)
     		if (turnOneShot) {
     			pidController.reset();
     			pidController.disable();
     			turnOneShot = false;
     		}
     		
-    		plungerLimitFlag = plungerLimiter.get();
-    		armLimitFlag = armLimiter.get();	
-    		
-    		if (++count > 50) {
-    			System.out.println("Arm limiter: " + armLimitFlag + " , Punchie Limiter: " + plungerLimitFlag);
-    			count = 0;
-    		}
-    		
+    		//Not sure if necessary, or what it does
     		SmartDashboard.putBoolean("robotSaveFrames", false);
     		SmartDashboard.putString("robotInfo", "--");
     		SmartDashboard.putNumber("robotTurnSP", -999);
@@ -190,13 +177,13 @@ public class Robot extends IterativeRobot implements PIDOutput {
         	
         	//Shooting Stuff
         	if(operatorController.getTriggerPressed(RobovikingStick.xBoxRightTrigger) && arm.isShooterEnabled()) {  // right trigger = axis 3
-        		if (!arm.isClawOpen()) {
+        		if (!arm.isClawOpen()) { //If the claw is not open, rumble the controller
         			tryingToShootWithPickupClosed = true;
-        		} else {
+        		} else { //otherwise, shoot and reload
         			arm.executeShootAndReloadSequence();  // go ahead and shoot
         			tryingToShootWithPickupClosed = false;
         		}    		
-        	} else {
+        	} else { //when not trying to shoot, don't vibrate the controller even if the claw is closed
         		tryingToShootWithPickupClosed = false;
         	}
         	
@@ -217,16 +204,17 @@ public class Robot extends IterativeRobot implements PIDOutput {
         	//Controlling the rollers
         	if(operatorController.getRawButton(RobovikingStick.xBoxRightBumper)) {
         		arm.rockAndRoll(-1.0);
-        		runningRollersWithArmUp = !arm.isArmDown();
+        		runningRollersWithArmUp = arm.isClawOpen();
         	}
         	else if(operatorController.getRawButton(RobovikingStick.xBoxLeftBumper)) {
         		arm.rockAndRoll(1.0);
-        		runningRollersWithArmUp = !arm.isArmDown();
+        		runningRollersWithArmUp = arm.isClawOpen();
         	}
         	else {
         		arm.rockAndRoll(0);
         		runningRollersWithArmUp = false;
         	}
+
         	
         	//Controlling the claw (open or close)
         	arm.toggleClaw(operatorController.getToggleButton(RobovikingStick.xBoxButtonB));
@@ -304,13 +292,30 @@ public class Robot extends IterativeRobot implements PIDOutput {
     					break;
     			}
         		
+        		if(operatorController.getRawButton(RobovikingStick.xBoxButtonX)){
+        			if (!armOneShot && arm.isArmEnabled() && armPosIndex != 4) {
+						armPosIndex = 4;
+						//arm.rotateArmToPosition(Constants.armPositions[armPosIndex]);		//arm.rotateArmXDegrees(47);
+						System.out.println("Trying to move arm to position 4 : " + armPosIndex);
+						arm.executeCheckAndRotate(Constants.armPositions[armPosIndex], 30.0);
+					}
+					armOneShot = true;
+        		} else {
+        			armOneShot = false;
+        		}
+        		
         	}
      	    	
-    	}
     	
+    	consoleMessage();
     }
     
-    public double getDriverYIn() {
+    @Override
+	public void testInit() {
+		armInTestFlag = true ;
+	}
+
+	public double getDriverYIn() {
     	return moveVal;
     }
     
@@ -331,12 +336,25 @@ public class Robot extends IterativeRobot implements PIDOutput {
      */
     public void testPeriodic() {
     
-
+    	if(operatorController.getRawButton(RobovikingStick.xBoxButtonA)) shifter.set(true);
+    	else { shifter.set(false); }
+    	
+    	if(operatorController.getRawButton(RobovikingStick.xBoxButtonB)) arm.shoot();
+    	else { arm.lock(); }
+    	
+    	if(operatorController.getRawButton(RobovikingStick.xBoxButtonX)) arm.toggleClaw(true);
+    	else { arm.toggleClaw(false); }
+    	
+    	if(operatorController.getRawButton(RobovikingStick.xBoxButtonY)) arm.setBrake(true);
+    	else { arm.setBrake(false);}
+    		
+/*
     	if (++counter >= 30) {
     		System.out.println("Left SP: " + leftMotors.pidLoop.getSetpoint() + " Right SP: " + rightMotors.pidLoop.getSetpoint());
     		System.out.println("Left enc: " + leftMotors.enc.getRate() + " Right enc: " + rightMotors.enc.getRate());
     		counter = 0;
     	}
+    	*/
     	
     	// shooter winding manual control
     	if(operatorController.getRawButton(RobovikingStick.xBoxLeftBumper)) {  // drive plunger forward (loosen)
@@ -398,6 +416,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
     							+ " Shooter Eye: " + arm.getShooterEye());
     		System.out.println(msgCount + ": Arm Eye: " + arm.getArmLimiter() + " Arm Enabled: " + arm.isArmEnabled()
     							+ " Arm Down: " + arm.isArmDown());
+
     		
     		SmartDashboard.putNumber("Arm Position", arm.getArmPosition());
     		counter = 0;

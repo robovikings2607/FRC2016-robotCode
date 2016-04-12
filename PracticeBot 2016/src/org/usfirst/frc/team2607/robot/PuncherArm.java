@@ -425,6 +425,10 @@ public class PuncherArm {
 		return armRotator.getPosition();
 	}
 	
+	public void setBrake( boolean jubbs) {
+		armLocker.set(jubbs);
+	}
+	
 	public boolean isShooterEnabled() { 	//for shooterEnabled field
 		return shooterEnabled;
 	}
