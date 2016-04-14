@@ -3,6 +3,7 @@ package org.usfirst.frc.team2607.robot;
 
 import java.io.File;
 import java.io.FileReader;
+import java.text.DecimalFormat;
 import java.util.Scanner;
 
 import org.usfirst.frc.team2607.robot.auto.AutonomousEngine;
@@ -23,6 +24,9 @@ import com.team254.lib.trajectory.io.TextFileDeserializer;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.PIDController;
+import edu.wpi.first.wpilibj.PIDOutput;
+import edu.wpi.first.wpilibj.PIDSourceType;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.Solenoid;
@@ -35,7 +39,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  * creating this project, you must also update the manifest file in the resource
  * directory.
  */
-public class Robot extends IterativeRobot {
+public class Robot extends IterativeRobot implements PIDOutput {
 	
 
 	public Transmission leftMotors , rightMotors ;
@@ -43,6 +47,12 @@ public class Robot extends IterativeRobot {
 	public PuncherArm arm ;
 	public Solenoid shifter ;
 	public AHRS navX;
+	public PIDController turnPID;
+	public double  kp = 0.053,	// 0.053
+				   ki = 0.00012,
+				   kd = 0.0,
+				   feedForward = .36; // 0.1
+
 	//public RobovikingDriveTrainProfileDriver mp;
 	
 	RobovikingStick dController , oController ;
@@ -55,7 +65,7 @@ public class Robot extends IterativeRobot {
 	private boolean armInTestFlag, armOneShot, armLockOneShot = false, armVisionOneShot = false;
 	private int armPosIndex = 0;						// index into array of arm positions
 	private boolean tryingToShootWithPickupClosed = false, runningRollersWithArmUp = false;
-	
+	private DecimalFormat floatFmt = new DecimalFormat("##.0000000");
 	/**
      * This function is run when the robot is first started up and should be
      * used for any initialization code.
@@ -63,6 +73,15 @@ public class Robot extends IterativeRobot {
     public void robotInit() {
     	
     	navX = new AHRS(SPI.Port.kMXP);
+    	navX.setPIDSourceType(PIDSourceType.kDisplacement);
+    	turnPID = new PIDController(kp, ki, kd, feedForward, navX, this);
+    	turnPID.setInputRange(-180.0, 180.0);
+    	turnPID.setOutputRange(-.7, .7);
+    	turnPID.setAbsoluteTolerance(.5);
+    	SmartDashboard.putString("kp", floatFmt.format(kp));
+    	SmartDashboard.putString("ki", floatFmt.format(ki));
+    	SmartDashboard.putString("kd", floatFmt.format(kd));
+    	SmartDashboard.putString("ff", floatFmt.format(feedForward));
     	shifter = new Solenoid(1,Constants.shifter);
     	leftMotors = new Transmission(Constants.leftDeviceIDs , true, RobovikingModPIDController.kTurnLeft, null); // null for gyro means not used
     	leftMotors.setName("Left");
@@ -247,8 +266,26 @@ public class Robot extends IterativeRobot {
     		if (degFromVision != -999 && degFromVision != 999) {
     			rDrive.arcadeDrive(0, calcTurn(degFromVision));
     		}
+    	} else if (dController.getRawButton(RobovikingStick.xBoxButtonB)) {
+    		if (!turnOneShot) {
+    			turnOneShot = true;
+    			navX.zeroYaw();
+    			degFromVision = SmartDashboard.getNumber("degToRotate", 999);
+    			kp = Double.parseDouble(SmartDashboard.getString("kp"));
+    			ki = Double.parseDouble(SmartDashboard.getString("ki"));
+    			kd = Double.parseDouble(SmartDashboard.getString("kd"));
+    			feedForward = Double.parseDouble(SmartDashboard.getString("ff"));
+    			turnPID.setPID(kp, ki, kd, feedForward);
+        		if (degFromVision != -999 && degFromVision != 999) {
+        			turnPID.setSetpoint(degFromVision);
+        			turnPID.enable();
+        		}
+    		}
     	} else {
     		turnOneShot = false;
+    		if (turnPID.isEnabled()) {
+    			turnPID.reset();
+    		}
     		rDrive.arcadeDrive(moveVal, rotateVal);	
     	}
 
@@ -476,5 +513,10 @@ public class Robot extends IterativeRobot {
     	}*/
     	
     }
+
+	@Override
+	public void pidWrite(double output) {
+		rDrive.arcadeDrive(0.0, output);
+	}
     
 }
