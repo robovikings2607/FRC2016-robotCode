@@ -2,6 +2,7 @@ package org.usfirst.frc.team2607.robot.auto;
 
 import java.util.ArrayList;
 
+import org.usfirst.frc.team2607.robot.Constants;
 import org.usfirst.frc.team2607.robot.Robot;
 import org.usfirst.frc.team2607.robot.RobovikingDriveTrainProfileDriver;
 
@@ -26,6 +27,7 @@ public class AutonomousManager {
 		modes.add(new DoNothing());
 		modes.add(new BreachLowBarAndShoot(robot));
 		modes.add(new TestAutonMode(robot));
+		modes.add(new CrossDefenseAndShoot(robot));
 	}
 	
 	public AutonomousMode getModeByName (String name){
@@ -126,6 +128,56 @@ public class AutonomousManager {
 		return interrupted;
 	}
 	
+	public class CrossDefenseAndShoot extends AutonomousMode {
+		
+		CrossDefenseAndShoot(Robot r) {
+			super(r);
+		}
+
+		@Override
+		public void run() {
+			//close claw
+			robot.arm.toggleClaw(true);
+
+			//set the arm to the zero position
+			if (!robot.arm.isArmEnabled()) {
+				robot.arm.executeArmHomingSequence();
+				try {Thread.sleep(1500);} catch (Exception e) {}
+			}
+			
+			robot.leftMotors.setInverted(false);
+			robot.rightMotors.setInverted(false);
+			robot.shifter.set(false);	// shift to low gear
+
+			//drive at half speed for 1 sec
+			robot.rDrive.arcadeDrive(.5, 0);
+			try { Thread.sleep(1000); } catch (Exception e) { robot.rDrive.arcadeDrive(0,0); return; }
+			
+			//wait until arm is at zero position
+			robot.rDrive.arcadeDrive(0,0);
+			while (!robot.arm.isArmEnabled()) {try { Thread.sleep(20); } catch (Exception e) {}}
+			
+			// take arm to crossing position
+			robot.arm.executeCheckAndRotate(-43.25);
+			while (!robot.arm.isArmWaiting()) {try { Thread.sleep(20); } catch (Exception e) {}}
+			
+			//drive full speed for 3 sec
+			robot.rDrive.arcadeDrive(0.9, 0.0);
+			try { Thread.sleep(3000); } catch (Exception e) { robot.rDrive.arcadeDrive(0,0); return; }
+			robot.rDrive.arcadeDrive(0, 0);
+			
+		}
+
+		@Override
+		public String getName() {
+			// TODO Auto-generated method stub
+			return "CrossDefenseAndShoot";
+		}
+
+	
+	
+	}
+	
 	
 	/*
 	 * BEGIN AUTON MODE DECLARATIONS
@@ -156,12 +208,12 @@ public class AutonomousManager {
 			rotateDegrees(-126.6, false, 3000);
 */			
 			while (!robot.arm.isArmEnabled()) {try { Thread.sleep(20); } catch (Exception e) {}}
-			try {Thread.sleep(200);} catch (Exception e) {}
+			try {Thread.sleep(200);} catch(InterruptedException e) { return; }
 			double targetAngleInFOV = SmartDashboard.getNumber("targetAngleInFOV", 999);
 			double degFromVision = SmartDashboard.getNumber("degToRotate", 999);
-			while (((targetAngleInFOV == 999 || targetAngleInFOV == -999) || 
-					(degFromVision == 999 || degFromVision == -999)) ){
-				try {Thread.sleep(10); } catch(Exception e) { return; }
+			while ((targetAngleInFOV == 999 || targetAngleInFOV == -999) || 
+					(degFromVision == 999 || degFromVision == -999)){
+				try {Thread.sleep(10); } catch(Exception e) {return;}
 				targetAngleInFOV = SmartDashboard.getNumber("targetAngleInFOV", 999);
 				degFromVision = SmartDashboard.getNumber("degToRotate", 999);
 				if (Thread.interrupted()) {
@@ -170,32 +222,32 @@ public class AutonomousManager {
 			}
 			
 			System.out.println("Angle used for Auton shot: " + targetAngleInFOV);
+			System.out.println("degFromVision: " + degFromVision);
 			
-			double armPosition = .0005909 * Math.pow(targetAngleInFOV, 3) + 
-					 -.07626081 * Math.pow(targetAngleInFOV, 2) +
-					 2.661478844 * targetAngleInFOV + 
-					 -68.3454292;
+			double armPosition = Constants.getArmAngle(targetAngleInFOV);
 
 			if (armPosition < 0 && armPosition > -67.0) {			
 				robot.arm.executeCheckAndRotate(armPosition);
 			}
-			System.out.println("degFromVision: " + degFromVision);
-			if (rotateDegrees(degFromVision, true, 2000)) {
-				// rotateDegrees returns true if this thread is being interrupted
-				return;
+			
+			if (degFromVision != -999 && degFromVision != 999) {
+				if (rotateDegrees(degFromVision, true, 3500)) {
+					return;
+				}
 			}
 			
-			while (!robot.arm.isArmWaiting()) {try { Thread.sleep(10); } catch (InterruptedException e) { return;}}
+			while (!robot.arm.isArmWaiting()) {try { Thread.sleep(10); } catch (InterruptedException e) { return; }}
+			
+			if (Thread.interrupted()) return;
 			
 			robot.arm.toggleClaw(false);
 			
 			try {
 				Thread.sleep(500);
-			} catch (InterruptedException e) {
-				return;
-			}
+			} catch (InterruptedException e) { return;}
+
 					
-			//robot.arm.shoot();		// go ahead and shoot
+			robot.arm.shoot();		// go ahead and shoot
 		}
 
 		@Override
@@ -273,10 +325,7 @@ public class AutonomousManager {
 			System.out.println("Angle used for Auton shot: " + targetAngleInFOV);
 			System.out.println("degFromVision: " + degFromVision);
 			
-			double armPosition = .0005909 * Math.pow(targetAngleInFOV, 3) + 
-					 -.07626081 * Math.pow(targetAngleInFOV, 2) +
-					 2.661478844 * targetAngleInFOV + 
-					 -68.3454292;
+			double armPosition = Constants.getArmAngle(targetAngleInFOV);
 
 			if (armPosition < 0 && armPosition > -67.0) {			
 				robot.arm.executeCheckAndRotate(armPosition);
@@ -295,7 +344,7 @@ public class AutonomousManager {
 			robot.arm.toggleClaw(false);
 			
 			try {
-				Thread.sleep(250);
+				Thread.sleep(500);
 			} catch (InterruptedException e) { return;}
 
 			robot.arm.shoot();		// go ahead and shoot	

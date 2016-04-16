@@ -139,6 +139,7 @@ public class PuncherArm {
 		private double targetPosition, pendingTargetPosition;	// pendingTargetPosition is used to temporarily hold new
 																// target position when interrupting a running MP
 		private double armMaxRPM = 18.0;						// max speed to run arm (default 18.0)
+		private boolean lockArmWhenDoneMoving = true;
 		
 		@Override
 		public void run() {
@@ -160,7 +161,7 @@ public class PuncherArm {
 						break;
 					case 3:
 						if (!armProfile.isMPRunning()) {
-							armLocker.set(false);		// always lock upon completing movement
+							armLocker.set(!lockArmWhenDoneMoving);		// solenoid false = lock upon completing movement
 							step.compareAndSet(3, 0);	//step = 0;
 						}
 						sleepTime = 20;
@@ -249,8 +250,20 @@ public class PuncherArm {
 			*/
 		}
 		
+		public void manualArmLock(boolean lock) {
+			// when lock = true, set solenoid to false to actually lock, and vice versa
+			if (!armEnabled) return;
+			if (step.get() == 0) {
+				armLocker.set(!lock);
+			}
+		}
+		
 		public int getStep() {
 			return step.get();
+		}
+		
+		public void setArmToLockAfterMoving(boolean lock) {
+			lockArmWhenDoneMoving = lock;
 		}
 
 	}
@@ -275,12 +288,12 @@ public class PuncherArm {
 			if (armLimiter.get()) {
 				System.out.println("WARNING!  Arm homing sequence aborted, arm should be moving but encoder isn't moving");
 				System.out.println("Leaving arm control disabled");
-				armLocker.set(false);	// lock the arm
+//				armLocker.set(false);	// lock the arm
 				armEnabled = false;
 			} else {
 				armRotator.setPosition(0);
 	    		armRotator.changeControlMode(TalonControlMode.MotionProfile);
-	    		armLocker.set(false);	// lock the arm
+//	    		armLocker.set(false);	// lock the arm
 	    		armEnabled = true;
 			}
 		}
@@ -481,5 +494,9 @@ public class PuncherArm {
 	
 	public void executeArmLocking() {
 		armPosThread.lockArm();
+	}
+	
+	public void executeManualArmLock(boolean lock) {
+		armPosThread.manualArmLock(lock);
 	}
 }

@@ -52,7 +52,8 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				   ki = 0.00012,
 				   kd = 0.0,
 				   feedForward = .36; // 0.1
-
+	public boolean visionTurningActive = false;
+	
 	//public RobovikingDriveTrainProfileDriver mp;
 	
 	RobovikingStick dController , oController ;
@@ -64,7 +65,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	private double moveVal , rotateVal ;
 	private boolean armInTestFlag, armOneShot, armLockOneShot = false, armVisionOneShot = false;
 	private int armPosIndex = 0;						// index into array of arm positions
-	private boolean tryingToShootWithPickupClosed = false, runningRollersWithArmUp = false;
+	private boolean tryingToShootWithPickupClosed = false, armDownButPickupOpen = false;
 	private DecimalFormat floatFmt = new DecimalFormat("##.0000000");
 	/**
      * This function is run when the robot is first started up and should be
@@ -264,6 +265,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
     			degFromVision = SmartDashboard.getNumber("degToRotate", 999);
     		}
     		if (degFromVision != -999 && degFromVision != 999) {
+    			visionTurningActive = true;
     			rDrive.arcadeDrive(0, calcTurn(degFromVision));
     		}
     	} else if (dController.getRawButton(RobovikingStick.xBoxButtonB)) {
@@ -279,6 +281,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
         		if (degFromVision != -999 && degFromVision != 999) {
         			turnPID.setSetpoint(degFromVision);
         			turnPID.enable();
+        			visionTurningActive = true;
         		}
     		}
     	} else {
@@ -286,11 +289,17 @@ public class Robot extends IterativeRobot implements PIDOutput {
     		if (turnPID.isEnabled()) {
     			turnPID.reset();
     		}
+    		visionTurningActive = false;
     		rDrive.arcadeDrive(moveVal, rotateVal);	
     	}
 
     	// Shifting!
-    	shifter.set(!dController.getToggleButton(RobovikingStick.xBoxButtonRightStick));  // defaults to high gear (true)
+    	if (visionTurningActive) {
+    		shifter.set(false);	//low gear
+    	} else {
+    		shifter.set(!dController.getToggleButton(RobovikingStick.xBoxButtonRightStick));  // defaults to high gear (true)	
+    	}
+    	
     	
     	//Shooting controls
     	if(oController.getTriggerPressed(RobovikingStick.xBoxRightTrigger) && arm.isShooterEnabled()) {  // right trigger = axis 3
@@ -322,22 +331,21 @@ public class Robot extends IterativeRobot implements PIDOutput {
     	//Controlling the rollers
     	if(oController.getRawButton(RobovikingStick.xBoxRightBumper)) {
     		arm.rockAndRoll(-1.0);
-    		runningRollersWithArmUp = !arm.isArmDown();
     	}
     	else if(oController.getRawButton(RobovikingStick.xBoxLeftBumper)) {
     		arm.rockAndRoll(1.0);
-    		runningRollersWithArmUp = !arm.isArmDown();
     	}
     	else {
     		arm.rockAndRoll(0);
-    		runningRollersWithArmUp = false;
     	}
     	
     	//Controlling the claw (open or close)
     	arm.toggleClaw(oController.getToggleButton(RobovikingStick.xBoxButtonB));
 
+    	armDownButPickupOpen = arm.isArmDown() && arm.isClawOpen();
+
     	// controller rumble
-    	if (tryingToShootWithPickupClosed || runningRollersWithArmUp) {
+    	if (tryingToShootWithPickupClosed || armDownButPickupOpen) {
     		oController.setRumble(Joystick.RumbleType.kLeftRumble, 1);
     		oController.setRumble(Joystick.RumbleType.kRightRumble, 1);
     	} else {
@@ -348,7 +356,12 @@ public class Robot extends IterativeRobot implements PIDOutput {
     	//Controlling the arm - check safeties: 
     	//	1) the position encoder is present and interrupt MP if not
     	arm.checkArmEncoderPresent();
- 	    	
+ 	    
+    	// manual arm unlock
+    	if (oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonY)) {
+    		arm.executeManualArmLock(false);
+    	} 
+    	
     	if(!armInTestFlag){
 
     		// removed arm.isArmWaiting() check from all commands, to allow for interrupt
@@ -367,14 +380,20 @@ public class Robot extends IterativeRobot implements PIDOutput {
     		// move arm to high goal target angle based on vision tracking    		
     		if (oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonA) && !armVisionOneShot && arm.isArmEnabled()) {
     			double targetAngleInFOV = SmartDashboard.getNumber("targetAngleInFOV", 999);
-    			double armPosition = .0005909 * Math.pow(targetAngleInFOV, 3) + 
+    			double armPosition = Constants.getArmAngle(targetAngleInFOV);
+    			/*targetAngleInFOV += (-.5);
+    			double armPosition = .00014735 * Math.pow(targetAngleInFOV, 3) + 
+    								 -.0282245209 * Math.pow(targetAngleInFOV, 2) + 
+    								 1.051732632 * targetAngleInFOV + 
+    								 -52.64559001  + 0.3 ; // + Fudge factor
+    								 /*.0005909 * Math.pow(targetAngleInFOV, 3) + 
     								 -.07626081 * Math.pow(targetAngleInFOV, 2) +
     								 2.661478844 * targetAngleInFOV + 
-    								 -68.3454292;
+    								 -68.3454292; */
     			
     			if (armPosition < 0 && armPosition > -67.0) {
     				armPosIndex = -2;
-    				arm.executeCheckAndRotate(armPosition);
+    				arm.executeCheckAndRotate(armPosition, 30.0);
     				armVisionOneShot = true;
     			} 
     		} else {

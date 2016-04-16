@@ -46,11 +46,23 @@ public class Constants {
 	public static double[] armPositions = 
 										//{0.0, -40.0, -44.0, -50.0};
 										//{0.0, -40.0, -54.0, -66.535};
-										{0.0, -41, -54.0, -66.535, -12.0};
-	
+										//{0.0, -42.5, -54.0, -66.535, -12.0};
+										//{0.0, -43.25, -54.0, -66.535, -12.0};
+										{0.0, -43.25, -54.0, -66.535, -4.6};
 
 	public static int[] leftDeviceIDs = { leftMotor1 , leftMotor2 , leftMotor3 , leftEncChannelA , leftEncChannelB };
 	public static int[] rightDeviceIDs = { rightMotor1 , rightMotor2 , rightMotor3 , rightEncChannelA , rightEncChannelB };
 
+	public static double getArmAngle (double targetAngleInFOV){
+		targetAngleInFOV += (4);
+		return  .00014735 * Math.pow(targetAngleInFOV, 3) + 
+							 -.0282245209 * Math.pow(targetAngleInFOV, 2) + 
+							 1.051732632 * targetAngleInFOV + 
+							 -52.64559001  + 0.3 ; // + Fudge factor
+							 /*.0005909 * Math.pow(targetAngleInFOV, 3) + 
+							 -.07626081 * Math.pow(targetAngleInFOV, 2) +
+							 2.661478844 * targetAngleInFOV + 
+							 -68.3454292; */
+	}
 		
 }
