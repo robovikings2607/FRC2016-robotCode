@@ -18,7 +18,21 @@ Vision Calibration 6/11/16
 		(Outer Works Shot distance = 143in)
 	TargetAngleINFOV 33.395, manualArmAngle -43.000, Arm Position -44.874
 		(distance = 10ft 6in)
-	
+	TargetAngleINFOV 35.489, manualArmAngle -46.000, Arm Position -45.110
+		(distance = 9ft 7in)
+	TargetAngleINFOV 39.572, manualArmAngle -48.000, Arm Position -47.832
+		(distance = 8ft 5in)
+	TargetAngleINFOV 42.084, manualArmAngle -49.000, Arm Position -50.580
+		(distance = 7ft 8in)
+	TargetAngleINFOV 45.539, manualArmAngle -50.000, Arm Position -51.899
+		(distance = 7ft 1in)
+	TargetAngleINFOV 50.355, manualArmAngle -55.000, Arm Position -56.902
+		(distance = 5ft 11in)
+	TargetAngleINFOV 54.333, manualArmAngle -55.000, Arm Position -56.902
+		(distance = 5ft 3in)
+	TargetAngleINFOV 58.102, manualArmAngle -62.000, Arm Position -61.273
+		(distance = 4ft 4in)
+		
 CompBot 2016 Control Scheme
 
 Driver Controls
