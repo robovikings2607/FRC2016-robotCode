@@ -11,6 +11,14 @@ Testing to do:
 		1) upon re-enabling, arm should stay in current position and you should be able to move as normal (profile
 		should handle current position)
 
+Vision Calibration 6/11/16
+	TargetAngleINFOV 26.591,  manualArmAngle -47.000,  Arm Position -45.581
+		(On the defense distance = 13ft 4in)
+	TargetAngleINFOV 30.045,  manualArmAngle -43.000,  Arm Position -44.916
+		(Outer Works Shot distance = 143in)
+	TargetAngleINFOV 33.395, manualArmAngle -43.000, Arm Position -44.874
+		(distance = 10ft 6in)
+	
 CompBot 2016 Control Scheme
 
 Driver Controls
@@ -19,7 +27,10 @@ Driver Controls
 	right stick button is shift
 		- code defaults to high gear (solenoid set to true on init) 
 	start button is auton mode select
-	
+	Button A is auto-turn
+	Button B is auto-turn with WPILib PIDController
+	Button Y is rotate arm to manualArmAngle from SmartDashboard
+		
 Operator Controls follow MikeyBear's Dream Control Scheme 
 
 	Right Trigger: 	Shoot and re-cock shooter 
@@ -34,7 +45,10 @@ Operator Controls follow MikeyBear's Dream Control Scheme
   	DPad Right:	arm outerworks shot position (-43)
   	DPad Down:	arm fully down (0) 
 
-	Toggle Claw open/closed	- Button B
+	Button A:	aim arm per vision tracking
+	Button B:	Toggle Claw open/closed
+	Button X:	arm position 4 (slightly off floor)
+	Button Y:   manual arm unlock
 	
 	Start button:  press and hold to execute shooter homing procedure....
 		- needs to be run if robot booted with shooter not fully cocked
