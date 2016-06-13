@@ -54,15 +54,25 @@ public class Constants {
 	public static int[] rightDeviceIDs = { rightMotor1 , rightMotor2 , rightMotor3 , rightEncChannelA , rightEncChannelB };
 
 	public static double getArmAngle (double targetAngleInFOV){
-		targetAngleInFOV += (4);
+//		targetAngleInFOV += (4);
+/* from MAR Champs....not enough data points
 		return  .00014735 * Math.pow(targetAngleInFOV, 3) + 
 							 -.0282245209 * Math.pow(targetAngleInFOV, 2) + 
 							 1.051732632 * targetAngleInFOV + 
 							 -52.64559001  + 0.3 ; // + Fudge factor
-							 /*.0005909 * Math.pow(targetAngleInFOV, 3) + 
+*/
+/* from Westtown....
+							 .0005909 * Math.pow(targetAngleInFOV, 3) + 
 							 -.07626081 * Math.pow(targetAngleInFOV, 2) +
 							 2.661478844 * targetAngleInFOV + 
-							 -68.3454292; */
+							 -68.3454292; 
+*/
+/* from data collected on 11-Jun */
+		// -0.000866964 x^3+0.104158 x^2-4.63308 x+26.3652
+		return  -0.000866964 * Math.pow(targetAngleInFOV, 3) + 
+				 0.104158 * Math.pow(targetAngleInFOV, 2) + 
+				 -4.63308 * targetAngleInFOV + 
+				 26.3652;
 	}
 		
 }

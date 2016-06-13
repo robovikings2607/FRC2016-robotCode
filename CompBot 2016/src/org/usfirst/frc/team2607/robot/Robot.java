@@ -197,6 +197,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		//		drivetrain....not that we're complaining or anything
 		leftMotors.setInverted(false);
 		rightMotors.setInverted(false);
+		SmartDashboard.putNumber("manualArmAngle", -999);
 	}
     
     int counter = 0, msgCount = 0;
@@ -253,7 +254,8 @@ public class Robot extends IterativeRobot implements PIDOutput {
     public void teleopPeriodic() {
 
     	//consoleMessage();
-
+    	SmartDashboard.putNumber("Arm Position", arm.getArmPosition());
+    	
     	// Driving!
     	moveVal = -( dController.getRawAxisWithDeadzone(RobovikingStick.xBoxLeftStickY) );
     	rotateVal = - (dController.getRawAxisWithDeadzone(RobovikingStick.xBoxRightStickX));
@@ -376,6 +378,15 @@ public class Robot extends IterativeRobot implements PIDOutput {
         	} else {
         		armLockOneShot = false;
         	}
+    		
+    		// move arm to position specified by manual entry on Smart Dashboard (for tuning purposes only)
+    		if (dController.getButtonPressedOneShot(RobovikingStick.xBoxButtonY) && arm.isArmEnabled()) {
+    			double manualArmAngle = SmartDashboard.getNumber("manualArmAngle", 999);
+    			if (manualArmAngle < 0 && manualArmAngle > -67.0) {
+    				armPosIndex = -2;
+    				arm.executeCheckAndRotate(manualArmAngle, 30.0);
+    			}
+    		}
     		
     		// move arm to high goal target angle based on vision tracking    		
     		if (oController.getButtonPressedOneShot(RobovikingStick.xBoxButtonA) && !armVisionOneShot && arm.isArmEnabled()) {
