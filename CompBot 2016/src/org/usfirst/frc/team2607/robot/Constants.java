@@ -67,12 +67,19 @@ public class Constants {
 							 2.661478844 * targetAngleInFOV + 
 							 -68.3454292; 
 */
-/* from data collected on 11-Jun */
+/* from data collected on 11-Jun 
 		// -0.000866964 x^3+0.104158 x^2-4.63308 x+26.3652
 		return  -0.000866964 * Math.pow(targetAngleInFOV, 3) + 
 				 0.104158 * Math.pow(targetAngleInFOV, 2) + 
 				 -4.63308 * targetAngleInFOV + 
 				 26.3652;
+*/
+/* from edited data points*/
+		//-0.00123187 x^3+0.14784 x^2-6.22975 x+42.9779
+		return  -0.00123187 * Math.pow(targetAngleInFOV, 3) + 
+				0.14784 * Math.pow(targetAngleInFOV, 2) + 
+				-6.22975 * targetAngleInFOV + 
+				 42.9779;
 	}
 		
 }
