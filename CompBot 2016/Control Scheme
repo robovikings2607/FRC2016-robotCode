@@ -14,14 +14,14 @@ Testing to do:
 Vision Calibration 6/11/16
 {26.591,-47},{30.045,-43},{33.395,-43},{35.489,-46},{39.572,-48},{42.084,-49},{45.539,-50},{50.355,-55},{54.333,-55},{58.102,-62}
 
-	TargetAngleINFOV 26.591,  manualArmAngle -47.000,  Arm Position -45.581
-		(On the defense distance = 13ft 4in)
-	TargetAngleINFOV 30.045,  manualArmAngle -43.000,  Arm Position -44.916
-		(Outer Works Shot distance = 143in)
-	TargetAngleINFOV 33.395, manualArmAngle -43.000, Arm Position -44.874
+	TargetAngleINFOV 28.370,  manualArmAngle -43.000,  Arm Position -44.985
+		(On the defense distance = 12ft 3.5in)
+	TargetAngleINFOV 30.359,  manualArmAngle -43.500,  Arm Position -45.320
+		(Outer Works Shot distance = 11ft 1in)
+	TargetAngleINFOV 31.616, manualArmAngle -46.000, Arm Position -47.998
 		(distance = 10ft 6in)
-	TargetAngleINFOV 35.489, manualArmAngle -46.000, Arm Position -45.110
-		(distance = 9ft 7in)
+	TargetAngleINFOV 34.966, manualArmAngle -47.000, Arm Position -48.896
+		(distance = 9ft 4in)
 	TargetAngleINFOV 39.572, manualArmAngle -48.000, Arm Position -47.832
 		(distance = 8ft 5in)
 	TargetAngleINFOV 42.084, manualArmAngle -49.000, Arm Position -50.580

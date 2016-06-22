@@ -156,11 +156,13 @@ public class PuncherArm {
 						break;
 					case 2: 
 						doRotationProfile();		// move to the target position
+						
 						sleepTime = 50;
 						step.compareAndSet(2, 3);	//step += 1;
 						break;
 					case 3:
 						if (!armProfile.isMPRunning()) {
+							if(!armLimiter.get()) armRotator.setPosition(0);
 							armLocker.set(!lockArmWhenDoneMoving);		// solenoid false = lock upon completing movement
 							step.compareAndSet(3, 0);	//step = 0;
 						}
