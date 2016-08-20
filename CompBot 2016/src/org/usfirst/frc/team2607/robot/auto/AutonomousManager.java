@@ -347,7 +347,7 @@ public class AutonomousManager {
 				Thread.sleep(500);
 			} catch (InterruptedException e) { return;}
 
-			robot.arm.shoot();		// go ahead and shoot	
+			//robot.arm.shoot();		// go ahead and shoot	
 			
 		}
 
