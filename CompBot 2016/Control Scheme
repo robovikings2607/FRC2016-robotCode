@@ -1,3 +1,11 @@
+20-Aug-2016
+For additional tuning:
+- make PuncherArm loggable
+- update web pages to graph PuncherArm
+	- also graph the generated profile
+	- check what position of last profile point is vs target position (i.e. is the profile getting us all the way to target?)
+		- can push last position to SmartDashboard
+		
 Testing to do:
 
 4) confirm that disabling and re-enabling is safe (e.g. transition from auto to teleop)
