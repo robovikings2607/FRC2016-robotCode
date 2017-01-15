@@ -48,7 +48,7 @@ public class Constants {
 										//{0.0, -40.0, -54.0, -66.535};
 										//{0.0, -42.5, -54.0, -66.535, -12.0};
 										//{0.0, -43.25, -54.0, -66.535, -12.0};
-										{0.0, -43.25, -54.0, -66.535, -4.6};
+										{0.0, -47.0, -45.0, -66.535, -4.6};
 
 	public static int[] leftDeviceIDs = { leftMotor1 , leftMotor2 , leftMotor3 , leftEncChannelA , leftEncChannelB };
 	public static int[] rightDeviceIDs = { rightMotor1 , rightMotor2 , rightMotor3 , rightEncChannelA , rightEncChannelB };

@@ -25,9 +25,12 @@ public class AutonomousManager {
 		
 		modes.add(new DoNothingFailsafe());
 		modes.add(new DoNothing());
-		modes.add(new BreachLowBarAndShoot(robot));
-		modes.add(new TestAutonMode(robot));
-		modes.add(new CrossDefenseAndShoot(robot));
+		//modes.add(new BreachLowBarAndShoot(robot));
+		//modes.add(new TestAutonMode(robot));
+		//modes.add(new CrossDefenseAndShoot(robot));
+		modes.add(new CrossDefense(robot));
+		modes.add(new CrossLowBarAndLowGoal(robot));
+		modes.add(new CrossDefenseAndLowGoal(robot));
 	}
 	
 	public AutonomousMode getModeByName (String name){
@@ -256,8 +259,6 @@ public class AutonomousManager {
 		}
 		
 	}
-	
-
 
 	public class BreachLowBarAndShoot extends AutonomousMode {
 
@@ -392,5 +393,86 @@ public class AutonomousManager {
 			return "DoNothingFailsafe";
 		}
 		
+	}
+	
+	public class CrossDefense extends AutonomousMode {
+		CrossDefense(Robot r){
+			super(r);
+		}
+		@Override
+		public void run() {
+			robot.rightMotors.setInverted(false);
+			robot.shifter.set(false);
+			try{Thread.sleep(0500);}catch(Exception e) {robot.rDrive.arcadeDrive(0,0);return;}
+			robot.rDrive.arcadeDrive(0.95,0.0);
+			try{Thread.sleep(4500);}catch(Exception e) {robot.rDrive.arcadeDrive(0,0);return;}
+			robot.rDrive.arcadeDrive(0.0,0.0);
+			//try{Thread.sleep(6500);}catch(Exception e) {robot.rDrive.arcadeDrive(0,0);return;}
+			//robot.rDrive.arcadeDrive(0.0,0.0);
+		}
+
+		@Override
+		public String getName() {
+			// TODO Auto-generated method stub
+			return "CrossDefense";
+		}
+		
+	}
+	
+	public class CrossLowBarAndLowGoal extends AutonomousMode {
+		CrossLowBarAndLowGoal(Robot r){
+			super(r);
+		}
+		@Override
+		public void run() {
+			robot.shifter.set(false);
+			robot.theFlapper.set(true);
+			try{Thread.sleep(1000);}catch(Exception e) {robot.rDrive.arcadeDrive(0,0);return;}
+			Path p = getPathFromFile("/home/lvuser/crossLowBarandLowGoal.txt");
+			
+			robot.navX.zeroYaw();
+			robot.arm.toggleClaw(true);
+			
+			RobovikingDriveTrainProfileDriver mp = new RobovikingDriveTrainProfileDriver(robot.leftMotors,robot.rightMotors, p);
+			mp.followPath();
+			
+			while (!mp.isDone()) {
+				try { 
+					Thread.sleep(3000);
+					robot.theFlapper.set(false);
+				} catch (Exception e) {}
+			}
+			
+		}
+
+		@Override
+		public String getName() {
+			// TODO Auto-generated method stub
+			return "LowBar/LowGoal";
+		}
+		
+	}
+	
+	public class CrossDefenseAndLowGoal extends AutonomousMode {
+		CrossDefenseAndLowGoal(Robot r){
+			super(r);
+		}
+		@Override
+		public void run() {
+			robot.shifter.set(false);
+			try{Thread.sleep(1000);}catch(Exception e) {robot.rDrive.arcadeDrive(0,0);return;}
+			Path p = getPathFromFile("/home/lvuser/newTestProfile.txt");
+			
+			robot.navX.zeroYaw();
+			
+			RobovikingDriveTrainProfileDriver mp = new RobovikingDriveTrainProfileDriver(robot.leftMotors,robot.rightMotors, p);
+			mp.followPath();
+			
+		}
+		@Override
+		public String getName() {
+			// TODO Auto-generated method stub
+			return "Defense/LowGoal";
+		}
 	}
 }

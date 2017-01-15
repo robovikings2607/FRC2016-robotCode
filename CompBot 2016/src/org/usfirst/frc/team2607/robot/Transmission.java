@@ -25,7 +25,7 @@ import edu.wpi.first.wpilibj.PIDSourceType;
  */
 public class Transmission implements SpeedController {
 	
-	CANTalon motor1 , motor2 , motor3;
+	CANTalon  motor2 , motor3;
 	
 	public Encoder enc;
 	public RobovikingModPIDController pidLoop;
@@ -49,7 +49,7 @@ public class Transmission implements SpeedController {
 		encodersFlag = useEncoders;
 		invertedFlag = false;
 		
-		motor1 = new CANTalon(deviceID[0]);
+		//motor1 = new CANTalon(deviceID[0]);
 		motor2 = new CANTalon(deviceID[1]);
 		motor3 = new CANTalon(deviceID[2]);
 
@@ -64,7 +64,7 @@ public class Transmission implements SpeedController {
 		motor1.set(deviceID[1]);
 */		
 	
-		motor1.enableBrakeMode(false);
+		//motor1.enableBrakeMode(false);
 		motor2.enableBrakeMode(false);
 		motor3.enableBrakeMode(false);
 		
@@ -99,7 +99,7 @@ public class Transmission implements SpeedController {
 	public void disableVelPID() {
 		if (!encodersFlag) return;
 		pidLoop.disable();
-		motor1.set(0);
+		//motor1.set(0);
 		motor2.set(0);
 		motor3.set(0);
 	}
@@ -145,14 +145,14 @@ public class Transmission implements SpeedController {
 			
 		}
 */
-		motor1.set(-s);		
+		//motor1.set(-s);		
 		motor2.set(s);
 		motor3.set(s);
 		
 		if (Math.abs(s) <= .05) {
 			if (++brakePulseTick >= 10) {
 			enableBrakeMode = !enableBrakeMode;
-			motor1.enableBrakeMode(enableBrakeMode);
+			//motor1.enableBrakeMode(enableBrakeMode);
 			motor2.enableBrakeMode(enableBrakeMode);
 			motor3.enableBrakeMode(enableBrakeMode);
 			brakePulseTick = 0;

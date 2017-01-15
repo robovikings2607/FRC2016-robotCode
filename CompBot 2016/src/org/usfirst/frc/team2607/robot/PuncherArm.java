@@ -322,7 +322,7 @@ public class PuncherArm {
 		armPosThread.start();
 		
 		punchLock = new Solenoid(1,Constants.puncherLock);
-		santaClaw = new Solenoid(1,Constants.clawOpener);
+		santaClaw = new Solenoid(1,4);
 		armLocker = new Solenoid(1,Constants.armLocker);
 		
 		punchWinder.setFeedbackDevice(FeedbackDevice.CtreMagEncoder_Relative);

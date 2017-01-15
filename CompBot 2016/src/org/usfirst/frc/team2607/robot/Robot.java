@@ -22,6 +22,7 @@ import com.team254.lib.trajectory.TrajectoryGenerator;
 import com.team254.lib.trajectory.WaypointSequence;
 import com.team254.lib.trajectory.io.TextFileDeserializer;
 
+import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PIDController;
@@ -41,12 +42,13 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  */
 public class Robot extends IterativeRobot implements PIDOutput {
 	
-
+	public CANTalon rolyPolyz ;
 	public Transmission leftMotors , rightMotors ;
 	public RobotDrive rDrive ;
 	public PuncherArm arm ;
 	public Solenoid shifter ;
 	public AHRS navX;
+	public Solenoid theFlapper;
 	public PIDController turnPID;
 	public double  kp = 0.053,	// 0.053
 				   ki = 0.00012,
@@ -90,7 +92,8 @@ public class Robot extends IterativeRobot implements PIDOutput {
     	rightMotors.setName("Right");
     	rDrive = new RobotDrive(leftMotors , rightMotors);
     	rDrive.setSafetyEnabled(false);
-
+    	theFlapper = new Solenoid(1,Constants.clawOpener);
+    	rolyPolyz = new CANTalon(1);
     	
     	arm = new PuncherArm();
     	armPosIndex = 0;
@@ -252,7 +255,24 @@ public class Robot extends IterativeRobot implements PIDOutput {
     boolean turnOneShot = false;
     double degFromVision = 990;
     public void teleopPeriodic() {
-
+    	
+    	
+    	theFlapper.set(oController.getToggleButton(RobovikingStick.xBoxButtonA));
+    	
+    	shifter.set(!dController.getToggleButton(RobovikingStick.xBoxButtonA));
+    	
+    	if (oController.getRawButton(RobovikingStick.xBoxLeftBumper)){
+    		rolyPolyz.set(0.8);
+    	} else if (oController.getRawButton(RobovikingStick.xBoxRightBumper)){
+    		rolyPolyz.set(-0.8);
+    	} else {
+    		rolyPolyz.set(0);
+    	}
+    	
+    	rDrive.arcadeDrive(-dController.getRawAxisWithDeadzone(RobovikingStick.xBoxLeftStickY),
+    			-dController.getRawAxisWithDeadzone(RobovikingStick.xBoxRightStickX));
+    	
+/*
     	//consoleMessage();
     	SmartDashboard.putNumber("Arm Position", arm.getArmPosition());
     	
@@ -400,7 +420,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
     								 /*.0005909 * Math.pow(targetAngleInFOV, 3) + 
     								 -.07626081 * Math.pow(targetAngleInFOV, 2) +
     								 2.661478844 * targetAngleInFOV + 
-    								 -68.3454292; */
+    								 -68.3454292; 
     			
     			if (armPosition < 0 && armPosition > -67.0) {
     				armPosIndex = -2;
@@ -469,7 +489,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
     		
     	}
     	
-        
+    */    
     }
     
     
@@ -500,10 +520,10 @@ public class Robot extends IterativeRobot implements PIDOutput {
     	
     	// shooter winding manual control
     	if(oController.getRawButton(RobovikingStick.xBoxLeftBumper)) {  // drive plunger forward (loosen)
-    		arm.winderManualRun(.6);
+    		arm.winderManualRun(-1.0);
     	}
     	else if(oController.getRawButton(RobovikingStick.xBoxRightBumper) && !arm.isShooterCocked()) {  // drive plunger back (tighten)
-    		arm.winderManualRun(-.6);
+    		arm.winderManualRun(1.0);
     	}
     	else {
     		arm.winderManualRun(0);
